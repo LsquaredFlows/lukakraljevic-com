@@ -163,10 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      // seat the sphere on the RIGHT of the in-flow band
-      group.position.x = 0.85;
-      group.position.y = 0.0;
-      const base = 0.95;
+      // big, centred-right, bleeding off the right edge + bottom of the band
+      group.position.x = 1.2;
+      group.position.y = -0.15;
+      const base = 1.5;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
