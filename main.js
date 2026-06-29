@@ -220,7 +220,7 @@ function initScene() {
 /* ── scroll-driven hero collapse + archive reveal ─────────── */
 let scrolled = false;
 function onScroll() {
-  const sh = window.scrollY > window.innerHeight * 0.15;
+  const sh = window.scrollY > window.innerHeight * 0.5;
   if (sh !== scrolled) {
     scrolled = sh;
     document.body.classList.toggle("scrolled", sh);
