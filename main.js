@@ -163,9 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      group.position.x = 0.25;
-      group.position.y = 0.2;
-      const base = 0.72;
+      // seat the sphere on the RIGHT of the in-flow band
+      group.position.x = 1.15;
+      group.position.y = 0.0;
+      const base = 0.6;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
@@ -219,7 +220,7 @@ function initScene() {
 /* ── scroll-driven hero collapse + archive reveal ─────────── */
 let scrolled = false;
 function onScroll() {
-  const sh = window.scrollY > window.innerHeight * 0.35;
+  const sh = window.scrollY > window.innerHeight * 0.15;
   if (sh !== scrolled) {
     scrolled = sh;
     document.body.classList.toggle("scrolled", sh);

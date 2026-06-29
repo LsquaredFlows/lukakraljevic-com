@@ -236,8 +236,8 @@ body.scrolled .pill-nav {
   will-change: transform, opacity;
 }
 body.scrolled .scene-wrap {
-  opacity: 0.45;
-  transform: scale(0.32) translate(20vw, -22vh);
+  opacity: 0;
+  transform: scale(0.18) translate(60vw, -34vh);
 }
 
 /* ── archive notebook ────────────────────────────────────── */
@@ -455,40 +455,42 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
 @media (max-width: 980px) {
   body { overflow-y: auto; height: auto; min-height: 100vh; padding-bottom: 120px; }
 
-  /* keep the mark in flow so it never sits on top of the sphere */
-  .mark { position: static; padding: 88px var(--pad) 0; }
+  /* name sits at the very top, in flow */
+  .mark { position: static; padding: 76px var(--pad) 0; }
   .menu-pill { top: 26px; right: var(--pad); }
 
-  /* sphere lives in a CONTAINED box pinned top-right, behind the hero text */
+  /* sphere is an IN-FLOW band between the name and the text (DOM order:
+     mark → scene-wrap → meta-stack), so it can never paint over the text.
+     The sphere itself is seated on the RIGHT inside the band (see main.js). */
   .scene-wrap {
-    position: absolute; top: 0; right: 0; left: auto; bottom: auto;
-    width: min(92vw, 460px); height: 46vh;
-    z-index: 1;
+    position: relative; inset: auto;
+    width: 100%; height: 40vh;
+    transform-origin: 80% 30%;
   }
   #cubes.ready { opacity: 1; }
-  /* dissolve the bottom edge of the sphere box into the page bg so text below reads clean */
+  /* soft fade so the band edges dissolve into the page bg */
   .scene-wrap::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background:
-      radial-gradient(85% 80% at 68% 36%, transparent 0%, transparent 52%, var(--bg) 100%),
-      linear-gradient(180deg, transparent 58%, var(--bg) 100%);
+      radial-gradient(80% 78% at 72% 38%, transparent 0%, transparent 54%, var(--bg) 100%),
+      linear-gradient(180deg, transparent 62%, var(--bg) 100%);
   }
 
-  /* push the hero text block below the sphere box (46vh) so nothing overlaps */
-  .meta-stack { position: static; padding: 46vh var(--pad) 44px; max-width: none; gap: 22px; }
+  /* text flows directly below the sphere band — no overlap, no big padding hack */
+  .meta-stack { position: static; padding: 14px var(--pad) 44px; max-width: none; gap: 22px; }
   .pill-nav { position: static; flex-direction: row; flex-wrap: wrap; padding: 0 var(--pad) 8px; align-items: flex-start; }
   .clock-row { flex-direction: column; gap: 18px; }
   .hero-sentence { min-width: 0; margin-top: 0; }
   .dim-stats { margin-left: 0; display: block; margin-top: 14px; }
 
-  /* the archive sits on solid bg, above the sphere */
   .archive { margin-top: 0; }
 
-  /* on phone the hero is real scrolling content — never fade or scale it away */
+  /* hero text is real content — never fade it on scroll */
   body.scrolled .meta-stack,
   body.scrolled .pill-nav,
   body.scrolled .mark { opacity: 1; transform: none; pointer-events: auto; }
-  body.scrolled .scene-wrap { opacity: 1; transform: none; }
+  /* but the sphere zooms out + disappears as you scroll (in place, no layout shift) */
+  body.scrolled .scene-wrap { opacity: 0; transform: scale(0.3); }
   body.scrolled .switch { display: none; }
 }
 
