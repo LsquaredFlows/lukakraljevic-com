@@ -164,9 +164,9 @@ function initScene() {
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
       // seat the sphere on the RIGHT of the in-flow band
-      group.position.x = 1.15;
+      group.position.x = 0.85;
       group.position.y = 0.0;
-      const base = 0.6;
+      const base = 0.95;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();

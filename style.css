@@ -34,6 +34,20 @@ body {
 ::selection { background: var(--coral); color: var(--bg); }
 a { color: inherit; text-decoration: none; }
 
+/* ── flat Honk palette (no rainbow; same on desktop + mobile) ──
+   Honk has 8 colour slots: 0–1 = the 3D depth/side, 2–7 = the letter face.
+   Flatten to brand colours so the display type renders one solid colour. */
+@font-palette-values --honk-cream {
+  font-family: "Honk";
+  override-colors: 0 #0a0a0a, 1 #0a0a0a, 2 #ece6d5, 3 #ece6d5, 4 #ece6d5, 5 #ece6d5, 6 #ece6d5, 7 #ece6d5;
+}
+@font-palette-values --honk-coral {
+  font-family: "Honk";
+  override-colors: 0 #0a0a0a, 1 #0a0a0a, 2 #f0a896, 3 #f0a896, 4 #f0a896, 5 #f0a896, 6 #f0a896, 7 #f0a896;
+}
+.mark-ln, .big-clock { font-palette: --honk-cream; }
+.mark-fn, .ar-num, .ar-h em { font-palette: --honk-coral; }
+
 /* ── top-left mark (chunky stencil · two-line lockup) ────── */
 .mark {
   position: fixed; top: clamp(28px, 4vw, 44px); left: var(--pad);
@@ -464,7 +478,7 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
      The sphere itself is seated on the RIGHT inside the band (see main.js). */
   .scene-wrap {
     position: relative; inset: auto;
-    width: 100%; height: 40vh;
+    width: 100%; height: 44vh;
     transform-origin: 80% 30%;
   }
   #cubes.ready { opacity: 1; }
