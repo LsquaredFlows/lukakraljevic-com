@@ -153,8 +153,24 @@ function initScene() {
   // centroid of all positions is (0,0,0) by construction — center it visually
   group.position.set(0, 0, 0);
 
-  /* sizing — center-right on wide, center on narrow */
+  /* sizing — center-right on wide desktop; on mobile the canvas is a
+     contained top-right box, so size to the canvas element's own box and
+     seat the sphere in the upper-right of that box */
   function resize() {
+    // mobile: match the CSS breakpoint and size to the canvas box, not the window
+    if (window.innerWidth <= 980) {
+      const cw = canvas.clientWidth  || 1;
+      const ch = canvas.clientHeight || 1;
+      r.setSize(cw, ch, false);
+      cam.aspect = cw / ch;
+      group.position.x = 0.25;
+      group.position.y = 0.2;
+      const base = 0.72;
+      group.userData.baseScale = base;
+      group.scale.setScalar(base);
+      cam.updateProjectionMatrix();
+      return;
+    }
     const w = window.innerWidth, h = window.innerHeight;
     r.setSize(w, h, false);
     cam.aspect = w / h;
