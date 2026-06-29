@@ -163,10 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      // big, centred-right, bleeding off the right edge + bottom of the band
-      group.position.x = 1.2;
-      group.position.y = -0.15;
-      const base = 1.5;
+      // centred-right, bleeds off the right edge but TOP edge stays visible
+      group.position.x = 1.0;
+      group.position.y = 0.0;
+      const base = 1.25;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
@@ -218,12 +218,32 @@ function initScene() {
 }
 
 /* ── scroll-driven hero collapse + archive reveal ─────────── */
+const sceneWrap = document.querySelector(".scene-wrap");
+const metaStack = document.querySelector(".meta-stack");
+const pillNav   = document.querySelector(".pill-nav");
 let scrolled = false;
 function onScroll() {
-  const sh = window.scrollY > window.innerHeight * 0.5;
-  if (sh !== scrolled) {
-    scrolled = sh;
-    document.body.classList.toggle("scrolled", sh);
+  const vh = window.innerHeight, y = window.scrollY;
+  const sh = y > vh * 0.5;
+  if (sh !== scrolled) { scrolled = sh; document.body.classList.toggle("scrolled", sh); }
+
+  // desktop: smooth, scroll-linked zoom-out + fade. The sphere sits ON TOP
+  // (z-index 7) and shrinks away gracefully while the archive rises beneath
+  // it — so the animation is never abruptly covered, and the hero text fades
+  // out before the archive reaches it (no overlap).
+  if (window.innerWidth > 980) {
+    const p = Math.min(1, y / (vh * 0.92));            // 0 at top → 1 after ~one screen
+    if (sceneWrap) {
+      sceneWrap.style.transition = "none";
+      sceneWrap.style.opacity = String(1 - p);
+      sceneWrap.style.transform = `scale(${1 - p * 0.82}) translate(${p * 24}vw, ${-p * 16}vh)`;
+    }
+    const tf = Math.max(0, 1 - p * 1.6);               // text fades a touch faster
+    if (metaStack) { metaStack.style.transition = "none"; metaStack.style.opacity = String(tf); metaStack.style.transform = `translateY(${-p * 22}px)`; }
+    if (pillNav)   { pillNav.style.transition = "none";   pillNav.style.opacity = String(tf);   pillNav.style.transform = `translateY(${-p * 22}px)`; }
+  } else {
+    // mobile: clear any desktop inline styles so the CSS-driven band behaviour wins
+    [sceneWrap, metaStack, pillNav].forEach(el => { if (el) { el.style.transition = ""; el.style.opacity = ""; el.style.transform = ""; } });
   }
 }
 window.addEventListener("scroll", onScroll, { passive: true });
