@@ -163,10 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      // centred-right, bleeds off the right edge but TOP edge stays visible
+      // big cropped orb like the laptop — bleeds past top, bottom and right
       group.position.x = 1.0;
       group.position.y = 0.0;
-      const base = 1.25;
+      const base = 1.7;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
