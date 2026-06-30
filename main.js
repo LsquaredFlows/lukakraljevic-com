@@ -174,9 +174,9 @@ function initScene() {
       const ch = Math.max(1, Math.round(rect.height));
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      group.position.x = 1.35;   // further right (bleed off the edge is fine)
+      group.position.x = 1.25;   // right-biased (bleeds off the right edge)
       group.position.y = 0.0;
-      const base = 1.5;          // a bit bigger
+      const base = 1.3;          // fits fully top-to-bottom, no vertical clip
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
