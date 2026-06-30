@@ -157,6 +157,8 @@ function initScene() {
      contained top-right box, so size to the canvas element's own box and
      seat the sphere in the upper-right of that box */
   function resize() {
+    // keep crispness if the device pixel ratio changes (browser/pinch zoom)
+    r.setPixelRatio(Math.min(devicePixelRatio, 2));
     // mobile: match the CSS breakpoint and size to the canvas box, not the window
     if (window.innerWidth <= 980) {
       const cw = canvas.clientWidth  || 1;
@@ -183,7 +185,15 @@ function initScene() {
     group.scale.setScalar(base);
     cam.updateProjectionMatrix();
   }
-  resize(); addEventListener("resize", resize);
+  // debounce resize to one update per frame — prevents thrash/jank from the
+  // flood of resize events fired by pinch-zoom and the iOS URL bar
+  let resizeRAF = 0;
+  function onResize() {
+    cancelAnimationFrame(resizeRAF);
+    resizeRAF = requestAnimationFrame(resize);
+  }
+  resize(); addEventListener("resize", onResize);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
 
   /* pointer parallax */
   const ptr = { x: 0, y: 0, tx: 0, ty: 0 };
