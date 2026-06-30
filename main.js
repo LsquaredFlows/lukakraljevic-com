@@ -166,7 +166,7 @@ function initScene() {
       const ch = Math.max(1, Math.round(rect.height));
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      group.position.x = 0.95;   // right-biased
+      group.position.x = 1.35;   // pushed right, bleeds off the right edge
       group.position.y = 0.0;
       const base = 1.08;         // whole ball sits inside with margin — no clip
       group.userData.baseScale = base;
