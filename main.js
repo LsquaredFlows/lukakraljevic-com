@@ -156,22 +156,27 @@ function initScene() {
   /* sizing — center-right on wide desktop; on mobile the canvas is a
      contained top-right box, so size to the canvas element's own box and
      seat the sphere in the upper-right of that box */
+  let mobileLastW = -1;
   function resize() {
+    const mobile = window.innerWidth <= 980;
+    // On mobile, IGNORE height-only resizes (the iOS URL bar hiding/showing on
+    // scroll). Re-layout only when the width actually changes (orientation), so
+    // the ball stays the exact same size + position when the bar hides.
+    if (mobile && window.innerWidth === mobileLastW) return;
+    mobileLastW = mobile ? window.innerWidth : -1;
     // keep crispness if the device pixel ratio changes (browser/pinch zoom)
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
-    // mobile: match the CSS breakpoint and size to the canvas box, not the window
-    if (window.innerWidth <= 980) {
-      // Buffer + aspect from the canvas's ACTUAL box so the sphere stays round
-      // (mismatched aspect renders it as an egg). updateStyle:false keeps the
-      // canvas at CSS 100% so it always fully covers the band — no blank strip.
+    if (mobile) {
+      // Buffer + aspect from the canvas's box so the sphere stays round.
+      // updateStyle:false keeps the canvas at CSS 100% (always covers the band).
       const rect = canvas.getBoundingClientRect();
       const cw = Math.max(1, Math.round(rect.width));
       const ch = Math.max(1, Math.round(rect.height));
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      group.position.x = 0.9;
+      group.position.x = 1.35;   // further right (bleed off the edge is fine)
       group.position.y = 0.0;
-      const base = 1.2;   // full ball fits vertically (top + bottom not clipped)
+      const base = 1.5;          // a bit bigger
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
@@ -190,20 +195,13 @@ function initScene() {
   }
   // debounce resize to one update per frame — prevents thrash/jank from the
   // flood of resize events fired by pinch-zoom and the iOS URL bar
-  let resizeRAF = 0, resizeTO = 0;
+  let resizeRAF = 0;
   function onResize() {
     cancelAnimationFrame(resizeRAF);
     resizeRAF = requestAnimationFrame(resize);
-    // re-run once the iOS URL-bar readjust has fully settled (resize can fire
-    // mid-animation with a stale box, which is what clipped the right edge)
-    clearTimeout(resizeTO);
-    resizeTO = setTimeout(resize, 280);
   }
   resize(); addEventListener("resize", onResize);
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", onResize);
-    window.visualViewport.addEventListener("scroll", onResize);
-  }
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
 
   /* pointer parallax */
   const ptr = { x: 0, y: 0, tx: 0, ty: 0 };
