@@ -178,7 +178,7 @@ function initScene() {
     r.setSize(w, h, false);
     cam.aspect = w / h;
     const wide = w / h > 1.1;
-    group.position.x = wide ? 1.6 : 0;
+    group.position.x = wide ? 1.9 : 0;
     group.position.y = wide ? 0.4 : 1.6;
     const base = wide ? 1.0 : 0.62;
     group.userData.baseScale = base;
