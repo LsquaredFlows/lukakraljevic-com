@@ -161,12 +161,13 @@ function initScene() {
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
     // mobile: match the CSS breakpoint and size to the canvas box, not the window
     if (window.innerWidth <= 980) {
-      const rect = canvas.getBoundingClientRect();
-      const cw = Math.max(1, Math.ceil(rect.width));
-      const ch = Math.max(1, Math.ceil(rect.height));
-      // updateStyle:true pins the canvas to an exact px size = its box, so the
-      // iOS URL-bar readjust can't leave a stale CSS-100% size that clips the right edge
-      r.setSize(cw, ch, true);
+      // Size the buffer from the STABLE viewport width (innerWidth doesn't change
+      // when the iOS URL bar hides/shows — only height does) and keep updateStyle:false
+      // so the canvas keeps CSS width/height:100% and ALWAYS fully covers the band.
+      // This makes a blank right strip during the iOS adapt impossible.
+      const cw = Math.max(1, window.innerWidth);
+      const ch = Math.max(1, Math.ceil(canvas.getBoundingClientRect().height));
+      r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
       group.position.x = 0.9;
       group.position.y = 0.0;
