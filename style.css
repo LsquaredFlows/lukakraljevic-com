@@ -500,8 +500,9 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   body.scrolled .meta-stack,
   body.scrolled .pill-nav,
   body.scrolled .mark { opacity: 1; transform: none; pointer-events: auto; }
-  /* but the sphere zooms out + disappears as you scroll (in place, no layout shift) */
-  body.scrolled .scene-wrap { opacity: 0; transform: scale(0.3); }
+  /* fade only — never CSS-transform the WebGL canvas on mobile (iOS Safari
+     tears/blanks a scaled WebGL canvas). The band scrolls away on its own. */
+  body.scrolled .scene-wrap { opacity: 0; transform: none; }
   body.scrolled .switch { display: none; }
 }
 
