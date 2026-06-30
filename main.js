@@ -161,12 +161,12 @@ function initScene() {
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
     // mobile: match the CSS breakpoint and size to the canvas box, not the window
     if (window.innerWidth <= 980) {
-      // Size the buffer from the STABLE viewport width (innerWidth doesn't change
-      // when the iOS URL bar hides/shows — only height does) and keep updateStyle:false
-      // so the canvas keeps CSS width/height:100% and ALWAYS fully covers the band.
-      // This makes a blank right strip during the iOS adapt impossible.
-      const cw = Math.max(1, window.innerWidth);
-      const ch = Math.max(1, Math.ceil(canvas.getBoundingClientRect().height));
+      // Buffer + aspect from the canvas's ACTUAL box so the sphere stays round
+      // (mismatched aspect renders it as an egg). updateStyle:false keeps the
+      // canvas at CSS 100% so it always fully covers the band — no blank strip.
+      const rect = canvas.getBoundingClientRect();
+      const cw = Math.max(1, Math.round(rect.width));
+      const ch = Math.max(1, Math.round(rect.height));
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
       group.position.x = 0.9;
