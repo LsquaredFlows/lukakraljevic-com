@@ -163,10 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      // big cropped orb like the laptop — bleeds past top, bottom and right
+      // cropped orb like the laptop — bleeds past top, bottom and right
       group.position.x = 1.0;
       group.position.y = 0.0;
-      const base = 1.7;
+      const base = 1.4;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
