@@ -174,9 +174,9 @@ function initScene() {
       const ch = Math.max(1, Math.round(rect.height));
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      group.position.x = 1.25;   // right-biased (bleeds off the right edge)
+      group.position.x = 0.95;   // right-biased
       group.position.y = 0.0;
-      const base = 1.3;          // fits fully top-to-bottom, no vertical clip
+      const base = 1.08;         // whole ball sits inside with margin — no top/bottom clip
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();

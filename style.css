@@ -474,18 +474,16 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   .scene-wrap {
     position: relative; inset: auto;
     width: 100%;
-    height: 46vh;
-    height: 46svh;   /* stable: doesn't grow/shrink as the iOS URL bar hides/shows */
-    margin: 10px 0 18px;   /* clear gap from the name above and the text below */
+    height: 56vh;
+    height: 56svh;   /* stable: doesn't grow/shrink as the iOS URL bar hides/shows */
+    margin: 8px 0 14px;   /* clear gap from the name above and the text below */
     transform-origin: 80% 40%;
   }
   #cubes.ready { opacity: 1; }
-  /* soft fade so the band edges dissolve into the page bg */
+  /* only fade the very bottom into the page bg — keep the ball crisp (no edge dimming) */
   .scene-wrap::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    background:
-      radial-gradient(80% 78% at 72% 38%, transparent 0%, transparent 54%, var(--bg) 100%),
-      linear-gradient(180deg, transparent 62%, var(--bg) 100%);
+    background: linear-gradient(180deg, transparent 80%, var(--bg) 100%);
   }
 
   /* text flows directly below the sphere band — no overlap, no big padding hack */
