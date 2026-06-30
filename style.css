@@ -7,8 +7,8 @@
   --bg:     #0a0a0a;
   --bg-2:   #141414;
   --cream:  #ece6d5;
-  --cream-2:#bcb6a5;
-  --dim:    #6f6a5d;
+  --cream-2:#d7d1c2;   /* brighter secondary text — readable on black */
+  --dim:    #9c9686;   /* brighter muted text (footer/labels) */
   --coral:  #f0a896;
   --coral-2:#d68470;
   --rule:   rgba(236,230,213,0.10);
@@ -110,9 +110,9 @@ a { color: inherit; text-decoration: none; }
 
 .top-line, .bottom-line {
   font-family: var(--mono);
-  font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--cream-2);
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .clock-row {
@@ -318,8 +318,8 @@ body.scrolled .scene-wrap {
 
 .ar-prose {
   font-family: var(--mono);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 15px;
+  line-height: 1.78;
   color: var(--cream-2);
   max-width: 60ch;
   margin-bottom: 32px;
@@ -370,9 +370,9 @@ body.scrolled .scene-wrap {
 .ar-cell ul { list-style: none; display: grid; gap: 6px; }
 .ar-cell li {
   font-family: var(--mono);
-  font-size: 13.5px;
+  font-size: 14.5px;
   color: var(--cream-2);
-  line-height: 1.45;
+  line-height: 1.5;
   padding-left: 16px; position: relative;
 }
 .ar-cell li::before { content: "→"; position: absolute; left: 0; color: var(--coral); }
