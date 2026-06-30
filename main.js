@@ -163,10 +163,10 @@ function initScene() {
       const ch = canvas.clientHeight || 1;
       r.setSize(cw, ch, false);
       cam.aspect = cw / ch;
-      // big cropped orb filling the band — bleeds past all edges, slight right bias
+      // cropped orb, zoomed out ~40% from full-bleed
       group.position.x = 0.9;
       group.position.y = 0.0;
-      const base = 1.9;
+      const base = 1.15;
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
