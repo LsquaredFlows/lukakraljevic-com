@@ -156,19 +156,11 @@ function initScene() {
   /* sizing — center-right on wide desktop; on mobile the canvas is a
      contained top-right box, so size to the canvas element's own box and
      seat the sphere in the upper-right of that box */
-  let mobileLastW = -1;
   function resize() {
-    const mobile = window.innerWidth <= 980;
-    // On mobile, IGNORE height-only resizes (the iOS URL bar hiding/showing on
-    // scroll). Re-layout only when the width actually changes (orientation), so
-    // the ball stays the exact same size + position when the bar hides.
-    if (mobile && window.innerWidth === mobileLastW) return;
-    mobileLastW = mobile ? window.innerWidth : -1;
-    // keep crispness if the device pixel ratio changes (browser/pinch zoom)
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
-    if (mobile) {
-      // Buffer + aspect from the canvas's box so the sphere stays round.
-      // updateStyle:false keeps the canvas at CSS 100% (always covers the band).
+    if (window.innerWidth <= 980) {
+      // Band height is width-based (CSS), so the box is constant across URL-bar
+      // changes. Re-fit from the box every time → always a correct circle, same size.
       const rect = canvas.getBoundingClientRect();
       const cw = Math.max(1, Math.round(rect.width));
       const ch = Math.max(1, Math.round(rect.height));
@@ -176,7 +168,7 @@ function initScene() {
       cam.aspect = cw / ch;
       group.position.x = 0.95;   // right-biased
       group.position.y = 0.0;
-      const base = 1.08;         // whole ball sits inside with margin — no top/bottom clip
+      const base = 1.08;         // whole ball sits inside with margin — no clip
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();

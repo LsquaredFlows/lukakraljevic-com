@@ -474,8 +474,9 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   .scene-wrap {
     position: relative; inset: auto;
     width: 100%;
-    height: 56vh;
-    height: 56svh;   /* stable: doesn't grow/shrink as the iOS URL bar hides/shows */
+    /* height from WIDTH (vw), not vh/svh — width doesn't change when the iOS URL
+       bar hides, so the band box is constant and the ball can't stretch/resize. */
+    height: min(116vw, 460px);
     margin: 8px 0 14px;   /* clear gap from the name above and the text below */
     transform-origin: 80% 40%;
   }
