@@ -240,6 +240,7 @@ function initScene() {
 const sceneWrap = document.querySelector(".scene-wrap");
 const metaStack = document.querySelector(".meta-stack");
 const pillNav   = document.querySelector(".pill-nav");
+const markEl    = document.querySelector(".mark");
 let scrolled = false;
 function onScroll() {
   const vh = window.innerHeight, y = window.scrollY;
@@ -260,9 +261,11 @@ function onScroll() {
     const tf = Math.max(0, 1 - p * 1.6);               // text fades a touch faster
     if (metaStack) { metaStack.style.transition = "none"; metaStack.style.opacity = String(tf); metaStack.style.transform = `translateY(${-p * 22}px)`; }
     if (pillNav)   { pillNav.style.transition = "none";   pillNav.style.opacity = String(tf);   pillNav.style.transform = `translateY(${-p * 22}px)`; }
+    // fade the fixed title too, so the archive never scrolls under/over it
+    if (markEl)    { markEl.style.transition = "none";    markEl.style.opacity = String(tf);    markEl.style.transform = `translateY(${-p * 22}px)`; markEl.style.pointerEvents = tf < 0.05 ? "none" : "auto"; }
   } else {
     // mobile: clear any desktop inline styles so the CSS-driven band behaviour wins
-    [sceneWrap, metaStack, pillNav].forEach(el => { if (el) { el.style.transition = ""; el.style.opacity = ""; el.style.transform = ""; } });
+    [sceneWrap, metaStack, pillNav, markEl].forEach(el => { if (el) { el.style.transition = ""; el.style.opacity = ""; el.style.transform = ""; el.style.pointerEvents = ""; } });
   }
 }
 window.addEventListener("scroll", onScroll, { passive: true });
