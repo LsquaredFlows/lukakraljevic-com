@@ -170,7 +170,7 @@ function initScene() {
       cam.aspect = cw / ch;
       group.position.x = 0.9;
       group.position.y = 0.0;
-      const base = 1.29;   // ~12% bigger than the zoomed-out size
+      const base = 1.2;   // full ball fits vertically (top + bottom not clipped)
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
