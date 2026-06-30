@@ -161,14 +161,16 @@ function initScene() {
     r.setPixelRatio(Math.min(devicePixelRatio, 2));
     // mobile: match the CSS breakpoint and size to the canvas box, not the window
     if (window.innerWidth <= 980) {
-      const cw = canvas.clientWidth  || 1;
-      const ch = canvas.clientHeight || 1;
-      r.setSize(cw, ch, false);
+      const rect = canvas.getBoundingClientRect();
+      const cw = Math.max(1, Math.ceil(rect.width));
+      const ch = Math.max(1, Math.ceil(rect.height));
+      // updateStyle:true pins the canvas to an exact px size = its box, so the
+      // iOS URL-bar readjust can't leave a stale CSS-100% size that clips the right edge
+      r.setSize(cw, ch, true);
       cam.aspect = cw / ch;
-      // cropped orb, zoomed out ~40% from full-bleed
       group.position.x = 0.9;
       group.position.y = 0.0;
-      const base = 1.15;
+      const base = 1.29;   // ~12% bigger than the zoomed-out size
       group.userData.baseScale = base;
       group.scale.setScalar(base);
       cam.updateProjectionMatrix();
@@ -187,13 +189,20 @@ function initScene() {
   }
   // debounce resize to one update per frame — prevents thrash/jank from the
   // flood of resize events fired by pinch-zoom and the iOS URL bar
-  let resizeRAF = 0;
+  let resizeRAF = 0, resizeTO = 0;
   function onResize() {
     cancelAnimationFrame(resizeRAF);
     resizeRAF = requestAnimationFrame(resize);
+    // re-run once the iOS URL-bar readjust has fully settled (resize can fire
+    // mid-animation with a stale box, which is what clipped the right edge)
+    clearTimeout(resizeTO);
+    resizeTO = setTimeout(resize, 280);
   }
   resize(); addEventListener("resize", onResize);
-  if (window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", onResize);
+    window.visualViewport.addEventListener("scroll", onResize);
+  }
 
   /* pointer parallax */
   const ptr = { x: 0, y: 0, tx: 0, ty: 0 };
