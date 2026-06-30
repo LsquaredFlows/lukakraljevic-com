@@ -458,6 +458,13 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   .ar-list li { grid-template-columns: 40px 1fr; }
   .ar-li-d { grid-column: 2; text-align: left; padding-top: 4px; }
   .ar-grid { grid-template-columns: 1fr; }
+
+  /* contact rows: stack label over value so the email gets full width and can't
+     overflow the viewport (the fixed 140px label column was causing the zoom-out) */
+  .ar-contact a { grid-template-columns: 1fr 24px; gap: 4px 12px; align-items: center; }
+  .ar-contact .ar-c-k { grid-column: 1; grid-row: 1; }
+  .ar-contact .ar-c-v { grid-column: 1; grid-row: 2; overflow-wrap: anywhere; }
+  .ar-contact .ar-c-a { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 }
 
 /* ── responsive · single-column phone layout ─────────────── */
