@@ -7,8 +7,8 @@
   --bg:     #0a0a0a;
   --bg-2:   #141414;
   --cream:  #ece6d5;
-  --cream-2:#d7d1c2;   /* brighter secondary text — readable on black */
-  --dim:    #9c9686;   /* brighter muted text (footer/labels) */
+  --cream-2:#e6e1d4;   /* secondary text — bright, near-white */
+  --dim:    #bab5a6;   /* muted text (footer/labels) — brightened */
   --coral:  #f0a896;
   --coral-2:#d68470;
   --rule:   rgba(236,230,213,0.10);
