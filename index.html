@@ -285,5 +285,22 @@
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
 </script>
 <script type="module" src="./main.js?v=21"></script>
+<script>
+  // Lightweight visit ping → same-origin /api/track (CSP-safe). Fire-and-forget.
+  try {
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        path: location.pathname,
+        referrer: document.referrer,
+        lang: navigator.language,
+        screen: screen.width + "x" + screen.height,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+      })
+    }).catch(function () {});
+  } catch (e) {}
+</script>
 </body>
 </html>
