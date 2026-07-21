@@ -539,7 +539,7 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
    content that ends in its own rule (list rows, the spec grid, contact rows)
    was doubling up with the next section's border-top — kill the trailing rule */
 .ar-list li:last-child { border-bottom: 0; padding-bottom: 10px; }
-.ar-grid { border-bottom: 0; }
+
 .ar-contact li:last-child { border-bottom: 0; }
 .ar-contact li:last-child a { padding-bottom: 10px; }
 
