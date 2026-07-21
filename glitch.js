@@ -306,7 +306,7 @@
         offset: f / steps
       });
     }
-    hit.span.animate(frames, { duration: 380 + Math.random() * 220, easing: "steps(" + steps + ", jump-none)" })
+    hit.span.animate(frames, { duration: 650 + Math.random() * 400, easing: "steps(" + steps + ", jump-none)" })
       .onfinish = function () { unwrap(hit); };
     return true;
   }
@@ -342,7 +342,7 @@
         }
         hit.span.textContent = out;
       }, 48);
-    }, 320 + Math.random() * 260);
+    }, 700 + Math.random() * 500);
     return true;
   }
 
@@ -561,12 +561,12 @@
       frames.push({
         transform: last ? "none" : "translate(" + (Math.random() * 6 - 3) + "px," + (Math.random() * 2 - 1) + "px) skewX(" + (Math.random() * 2 - 1) + "deg)",
         textShadow: last ? "none" : (Math.random() < 0.5
-          ? "-2px 0 " + COLORS[0] + ", 2px 0 " + COLORS[1]
-          : "2px 0 " + COLORS[0] + ", -2px 0 " + COLORS[1]),
+          ? "-3px 0 " + COLORS[0] + ", 3px 0 " + COLORS[1]
+          : "3px 0 " + COLORS[0] + ", -3px 0 " + COLORS[1]),
         offset: f / steps
       });
     }
-    el.animate(frames, { duration: 300 + Math.random() * 160, easing: "steps(" + steps + ", jump-none)" });
+    el.animate(frames, { duration: 750 + Math.random() * 450, easing: "steps(" + steps + ", jump-none)" });
     return true;
   }
 
@@ -614,12 +614,12 @@
     document.body.appendChild(c);
     var anim = c.animate(
       [
-        { transform: "translate(3px,-2px)", opacity: 0.6, clipPath: "inset(0 0 0 0)" },
-        { transform: "translate(-4px,1px)", opacity: 0.45, clipPath: "inset(20% 0 30% 0)", offset: 0.4 },
-        { transform: "translate(2px,0)", opacity: 0.3, clipPath: "inset(55% 0 10% 0)", offset: 0.7 },
+        { transform: "translate(3px,-2px)", opacity: 0.8, clipPath: "inset(0 0 0 0)" },
+        { transform: "translate(-5px,2px)", opacity: 0.65, clipPath: "inset(20% 0 30% 0)", offset: 0.4 },
+        { transform: "translate(3px,0)", opacity: 0.5, clipPath: "inset(55% 0 10% 0)", offset: 0.7 },
         { transform: "translate(0,0)", opacity: 0 }
       ],
-      { duration: 380 + Math.random() * 180, easing: "steps(5, jump-none)" }
+      { duration: 1000 + Math.random() * 600, easing: "steps(8, jump-none)" }
     );
     trackOverlay(c, anim, el);
     return true;
@@ -638,17 +638,73 @@
     s.left = rect.left + "px";
     s.top = rect.top + "px";
     s.height = rect.height + "px";
-    s.width = "46px";
+    s.width = "72px";
     s.zIndex = 9998;
     s.pointerEvents = "none";
-    s.background = "linear-gradient(90deg, transparent, rgba(240,168,150,0.18), transparent)";
+    s.background = "linear-gradient(90deg, transparent, rgba(240,168,150,0.30), transparent)";
     s.mixBlendMode = "screen";
     document.body.appendChild(d);
     var anim = d.animate(
-      [{ transform: "translateX(0)" }, { transform: "translateX(" + (rect.width - 46) + "px)" }],
-      { duration: 520 + Math.random() * 220, easing: "cubic-bezier(.2,.6,.3,1)" }
+      [{ transform: "translateX(0)" }, { transform: "translateX(" + (rect.width - 72) + "px)" }],
+      { duration: 950 + Math.random() * 450, easing: "cubic-bezier(.2,.6,.3,1)" }
     );
     trackOverlay(d, anim, el);
+    return true;
+  }
+
+  /* corruption wave — a ghost copy sits ON the paragraph for ~2s, its
+     characters re-corrupting every 90ms before it dissolves. The longest,
+     loudest text effect — prose only, never titles. */
+  function corruptionWave() {
+    var t = blockTargets();
+    if (!t.length) return false;
+    var el = pick(t);
+    var rect = el.getBoundingClientRect();
+    if (!rect.width) return false;
+    var c = el.cloneNode(true);
+    var textNodes = [];
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = walker.nextNode())) { if (n.textContent.trim()) textNodes.push({ node: n, orig: n.textContent }); }
+    if (!textNodes.length) return false;
+    var st = c.style;
+    st.position = "fixed";
+    st.left = rect.left + "px";
+    st.top = rect.top + "px";
+    st.width = rect.width + "px";
+    st.height = rect.height + "px";
+    st.margin = "0";
+    st.pointerEvents = "none";
+    st.zIndex = 9999;
+    st.color = COLORS[0];
+    st.webkitTextFillColor = COLORS[0];
+    st.mixBlendMode = "screen";
+    document.body.appendChild(c);
+    function recorrupt(rate) {
+      textNodes.forEach(function (e) {
+        var s2 = e.orig.split("");
+        for (var k = 0; k < s2.length; k++) {
+          if (s2[k] !== " " && Math.random() < rate) s2[k] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        }
+        e.node.textContent = s2.join("");
+      });
+    }
+    recorrupt(0.22);
+    var iv = setInterval(function () {
+      if (!document.body.contains(c)) { clearInterval(iv); return; }
+      recorrupt(0.1 + Math.random() * 0.2);
+    }, 90);
+    var anim = c.animate(
+      [
+        { opacity: 0.75, transform: "translate(2px,-1px)" },
+        { opacity: 0.6, transform: "translate(-3px,1px)", offset: 0.3 },
+        { opacity: 0.65, transform: "translate(2px,0)", offset: 0.6 },
+        { opacity: 0.45, transform: "translate(-1px,0)", offset: 0.85 },
+        { opacity: 0, transform: "translate(0,0)" }
+      ],
+      { duration: 1900 + Math.random() * 700, easing: "linear" }
+    );
+    trackOverlay(c, anim, el);
     return true;
   }
 
@@ -689,7 +745,9 @@
       function () { if (!blockFlicker()) noiseFlash(); if (Math.random() < 0.3) blockJitter(); },
       function () { if (!highlightSweep()) scanline(); },
       function () { vibrateCascade(); },
-      function () { if (!ghostEcho()) blockJitter(); if (Math.random() < 0.35) blockFlicker(); }
+      function () { if (!ghostEcho()) blockJitter(); if (Math.random() < 0.35) blockFlicker(); },
+      function () { if (!corruptionWave()) ghostEcho(); },
+      function () { if (!corruptionWave()) blockJitter(); if (Math.random() < 0.4) highlightSweep(); }
     ];
     var i;
     do { i = Math.floor(Math.random() * VARIANTS.length); } while (i === lastVariant);
