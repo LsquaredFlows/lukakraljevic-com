@@ -568,7 +568,7 @@
     do { i = Math.floor(Math.random() * VARIANTS.length); } while (i === lastVariant);
     lastVariant = i;
     VARIANTS[i]();
-    if (Math.random() < 0.25) setTimeout(function () { sliceGlitch(pick(targets()), false); }, 130);
+    if (Math.random() < 0.45) setTimeout(function () { sliceGlitch(pick(targets()), false); }, 130);
   }
 
   /* ── SIGNATURE burst — once, first scroll off the hero ── */
@@ -607,8 +607,8 @@
   addEventListener("scroll", function () {
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function () {
-      if (!signatureDone || Date.now() - lastFire < 3000) return;
-      if (Math.random() < 0.6) { lastFire = Date.now(); burst(); }
+      if (!signatureDone || Date.now() - lastFire < 2200) return;
+      if (Math.random() < 0.75) { lastFire = Date.now(); burst(); }
     }, 150);
   }, { passive: true });
 
@@ -617,6 +617,6 @@
     setTimeout(function () {
       if (signatureDone && Date.now() - lastFire > 3000) { lastFire = Date.now(); burst(); }
       idle();
-    }, 8000 + Math.random() * 7000);
+    }, 6000 + Math.random() * 5000);
   })();
 })();
