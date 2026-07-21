@@ -39,18 +39,26 @@ module.exports = async (req, res) => {
     return res.end();
   }
 
+  let body = req.body;
+  if (typeof body === "string") {
+    try { body = JSON.parse(body); } catch (e) { body = {}; }
+  }
+  body = body || {};
+
+  // Headless crawlers that execute JS and spoof a normal browser UA still give
+  // themselves away: default 800x600 viewport + UTC timezone. No real visitor
+  // has that combination.
+  if (String(body.screen) === "800x600" && String(body.tz) === "UTC") {
+    res.statusCode = 204;
+    return res.end();
+  }
+
   const webhook = process.env.TRACK_WEBHOOK_URL;
   if (!webhook) {
     // Not configured yet — succeed silently so the site never errors.
     res.statusCode = 204;
     return res.end();
   }
-
-  let body = req.body;
-  if (typeof body === "string") {
-    try { body = JSON.parse(body); } catch (e) { body = {}; }
-  }
-  body = body || {};
 
   const city = decodeURIComponent(req.headers["x-vercel-ip-city"] || "").trim();
   const referrer = String(body.referrer || "").slice(0, 300);
