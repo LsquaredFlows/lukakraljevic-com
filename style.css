@@ -273,7 +273,7 @@ body.scrolled .scene-wrap {
   display: grid;
   grid-template-columns: 160px 1fr;
   gap: 56px;
-  padding: 44px 0;
+  padding: 28px 0;
   border-top: 1px solid var(--rule);
   align-items: start;
   opacity: 0;
@@ -534,9 +534,10 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
 /* ── single divider between sections ──
    content that ends in its own rule (list rows, the spec grid, contact rows)
    was doubling up with the next section's border-top — kill the trailing rule */
-.ar-list li:last-child { border-bottom: 0; }
+.ar-list li:last-child { border-bottom: 0; padding-bottom: 10px; }
 .ar-grid { border-bottom: 0; }
 .ar-contact li:last-child { border-bottom: 0; }
+.ar-contact li:last-child a { padding-bottom: 10px; }
 
 /* ── back-to-top (phones only) ── */
 html { scroll-behavior: smooth; }
