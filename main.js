@@ -130,6 +130,8 @@ function initScene() {
     m.position.copy(pos);
     m.scale.setScalar(sizeFactor);
     m.userData.phase = (i / N) * Math.PI * 2;
+    m.userData.basePos = pos.clone();
+    m.userData.sizeFactor = sizeFactor;
     group.add(m);
   }
 
@@ -211,6 +213,90 @@ function initScene() {
   const visIO = new IntersectionObserver((es) => { canvasSeen = es[0].isIntersecting; });
   visIO.observe(canvas);
 
+  /* spin jolt — glitch bursts can kick the sphere into a fast spin that
+     decays back to the lazy tumble (called from glitch.js) */
+  let joltV = 0, joltA = 0;
+  window.__sphereJolt = function (amt) { joltV += amt || 2.2; };
+
+  /* ── dark-matter anomaly — a random dot detaches from the lattice:
+     darkens to a void violet-black, wobbles fluidly like it's underwater,
+     flickers, then heals back into the constellation ── */
+  const dots = group.children.filter(c => c.isMesh);
+  const anomalies = [];
+  const DARK = new THREE.Color(0x16121f);
+  const CREAM = new THREE.Color(0xede7d7);
+  function spawnAnomaly() {
+    const m = dots[Math.floor(Math.random() * dots.length)];
+    if (!m || m.userData.anomaly) return;
+    m.userData.anomaly = true;
+    const dark = mat.clone();
+    dark.transparent = true;
+    dark.sheenColor = new THREE.Color(0x6a5acd);
+    dark.iridescence = 0.55;
+    m.material = dark;
+    anomalies.push({ m, dark, start: performance.now(), dur: 1800 + Math.random() * 1600 });
+  }
+  window.__sphereAnomaly = spawnAnomaly;
+
+  /* ── ripple wave — a scale pulse travels pole-to-pole through the dots ── */
+  let ripple = null;
+  window.__sphereWave = function () {
+    if (!ripple) ripple = { start: performance.now(), dur: 1300 };
+  };
+  function updateRipple(now) {
+    if (!ripple) return;
+    const rp = (now - ripple.start) / ripple.dur;
+    if (rp >= 1) {
+      dots.forEach(d => { if (!d.userData.anomaly) d.scale.setScalar(d.userData.sizeFactor); });
+      ripple = null;
+      return;
+    }
+    const front = 1 - rp * 2;   // wave front sweeps y from +1 to -1
+    dots.forEach(d => {
+      if (d.userData.anomaly) return;
+      const yn = d.userData.basePos.y / SPHERE_R;
+      const dist = Math.abs(yn - front);
+      const boost = Math.exp(-dist * dist / 0.02) * 0.9;
+      d.scale.setScalar(d.userData.sizeFactor * (1 + boost));
+    });
+  }
+  function updateAnomalies(now, t) {
+    for (let i = anomalies.length - 1; i >= 0; i--) {
+      const a = anomalies[i];
+      const p = (now - a.start) / a.dur;
+      const u = a.m.userData;
+      if (p >= 1) {
+        a.m.material = mat;
+        a.m.position.copy(u.basePos);
+        a.m.scale.setScalar(u.sizeFactor);
+        a.dark.dispose();
+        delete u.anomaly;
+        anomalies.splice(i, 1);
+        continue;
+      }
+      const env = Math.sin(p * Math.PI);              // ease in → peak → heal
+      const ph = u.phase;
+      // aquatic wobble — slow layered sines, drifting off the lattice point
+      const wob = 0.10 * env;
+      a.m.position.set(
+        u.basePos.x + Math.sin(t * 3.1 + ph) * wob,
+        u.basePos.y + Math.sin(t * 2.3 + ph * 2) * wob,
+        u.basePos.z + Math.cos(t * 2.7 + ph) * wob
+      );
+      // breathing swell + dark flicker
+      a.m.scale.setScalar(u.sizeFactor * (1 + Math.sin(t * 5 + ph) * 0.45 * env));
+      a.dark.color.copy(CREAM).lerp(DARK, env * (0.75 + 0.25 * Math.sin(t * 11 + ph)));
+      a.dark.opacity = 1 - 0.35 * env * Math.abs(Math.sin(t * 7 + ph));
+    }
+  }
+  /* ambient cadence — one dot goes dark every few seconds (demo rate) */
+  (function anomalyTick() {
+    setTimeout(function () {
+      if (!heroGone && canvasSeen && anomalies.length < 3) spawnAnomaly();
+      anomalyTick();
+    }, 2500 + Math.random() * 3500);
+  })();
+
   /* animation loop · multi-axis tumble + breathing + per-leaf shimmer */
   let t0 = performance.now();
   function loop(now) {
@@ -222,8 +308,12 @@ function initScene() {
     ptr.x += (ptr.tx - ptr.x) * 0.05;
     ptr.y += (ptr.ty - ptr.y) * 0.05;
 
+    // integrate + decay the jolt (~1.5s back to calm)
+    joltA += joltV * 0.016;
+    joltV *= 0.955;
+
     // slow multi-axis tumble — three different frequencies to avoid repetition
-    group.rotation.y = -0.35 + t * 0.12 + ptr.x * 0.35;
+    group.rotation.y = -0.35 + t * 0.12 + joltA + ptr.x * 0.35;
     group.rotation.x = -0.15 + Math.sin(t * 0.27) * 0.20 + ptr.y * 0.22;
     group.rotation.z = Math.sin(t * 0.18) * 0.10;
 
@@ -231,6 +321,9 @@ function initScene() {
     const baseScale = group.userData.baseScale || 1;
     const breath = 1 + Math.sin(t * (Math.PI * 2 / 4)) * 0.025;
     group.scale.setScalar(baseScale * breath);
+
+    updateAnomalies(now, t);
+    updateRipple(now);
 
     r.render(scene, cam);
     requestAnimationFrame(loop);
