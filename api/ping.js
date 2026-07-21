@@ -63,10 +63,19 @@ module.exports = async (req, res) => {
   const city = decodeURIComponent(req.headers["x-vercel-ip-city"] || "").trim();
   const referrer = String(body.referrer || "").slice(0, 300);
 
+  // date/time in Croatian local time (DST-aware); ts stays UTC ISO for sorting
+  const now = new Date();
+  const local = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Zagreb",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).format(now); // sv-SE locale → "YYYY-MM-DD HH:MM:SS"
+
   const payload = {
-    ts: new Date().toISOString(),
-    date: new Date().toISOString().slice(0, 10),
-    time: new Date().toISOString().slice(11, 19),
+    ts: now.toISOString(),
+    date: local.slice(0, 10),
+    time: local.slice(11, 19),
     country: req.headers["x-vercel-ip-country"] || "",
     region: req.headers["x-vercel-ip-country-region"] || "",
     city: city,
