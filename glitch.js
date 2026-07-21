@@ -539,6 +539,127 @@
     }, 6000 + Math.random() * 6000);
   })();
 
+  /* ── block-level effects — whole paragraphs and list cells, not just
+     titles/words. All reflow-safe: transforms, ghost clones and overlays
+     only; the real text never changes width. ── */
+  function blockTargets() {
+    var els = [];
+    document.querySelectorAll(".ar-prose, .ar-list li, .ar-cell").forEach(function (el) {
+      if (visible(el)) els.push(el);
+    });
+    return els;
+  }
+
+  /* whole block jitters with RGB shadow — like the paragraph lost tracking */
+  function blockJitter() {
+    var t = blockTargets();
+    if (!t.length) return false;
+    var el = pick(t);
+    var frames = [], steps = 7;
+    for (var f = 0; f <= steps; f++) {
+      var last = f === steps;
+      frames.push({
+        transform: last ? "none" : "translate(" + (Math.random() * 6 - 3) + "px," + (Math.random() * 2 - 1) + "px) skewX(" + (Math.random() * 2 - 1) + "deg)",
+        textShadow: last ? "none" : (Math.random() < 0.5
+          ? "-2px 0 " + COLORS[0] + ", 2px 0 " + COLORS[1]
+          : "2px 0 " + COLORS[0] + ", -2px 0 " + COLORS[1]),
+        offset: f / steps
+      });
+    }
+    el.animate(frames, { duration: 300 + Math.random() * 160, easing: "steps(" + steps + ", jump-none)" });
+    return true;
+  }
+
+  /* block flickers like a failing backlight */
+  function blockFlicker() {
+    var t = blockTargets();
+    if (!t.length) return false;
+    pick(t).animate(
+      [{ opacity: 1 }, { opacity: 0.25 }, { opacity: 0.9 }, { opacity: 0.4 }, { opacity: 1 }],
+      { duration: 260 + Math.random() * 140, easing: "steps(4, jump-none)" }
+    );
+    return true;
+  }
+
+  /* ghost echo — a corrupted coral copy of the whole block detaches,
+     slices apart and dissolves while the real text stays clean */
+  function ghostEcho() {
+    var t = blockTargets();
+    if (!t.length) return false;
+    var el = pick(t);
+    var rect = el.getBoundingClientRect();
+    if (!rect.width) return false;
+    var c = el.cloneNode(true);
+    var walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = walker.nextNode())) {
+      var s = n.textContent.split("");
+      for (var k = 0; k < s.length; k++) {
+        if (s[k] !== " " && Math.random() < 0.18) s[k] = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      n.textContent = s.join("");
+    }
+    var st = c.style;
+    st.position = "fixed";
+    st.left = rect.left + "px";
+    st.top = rect.top + "px";
+    st.width = rect.width + "px";
+    st.height = rect.height + "px";
+    st.margin = "0";
+    st.pointerEvents = "none";
+    st.zIndex = 9999;
+    st.color = COLORS[0];
+    st.webkitTextFillColor = COLORS[0];
+    st.mixBlendMode = "screen";
+    document.body.appendChild(c);
+    var anim = c.animate(
+      [
+        { transform: "translate(3px,-2px)", opacity: 0.6, clipPath: "inset(0 0 0 0)" },
+        { transform: "translate(-4px,1px)", opacity: 0.45, clipPath: "inset(20% 0 30% 0)", offset: 0.4 },
+        { transform: "translate(2px,0)", opacity: 0.3, clipPath: "inset(55% 0 10% 0)", offset: 0.7 },
+        { transform: "translate(0,0)", opacity: 0 }
+      ],
+      { duration: 380 + Math.random() * 180, easing: "steps(5, jump-none)" }
+    );
+    trackOverlay(c, anim, el);
+    return true;
+  }
+
+  /* scanner sweep — a soft coral read-head passes across the block */
+  function highlightSweep() {
+    var t = blockTargets();
+    if (!t.length) return false;
+    var el = pick(t);
+    var rect = el.getBoundingClientRect();
+    if (rect.width < 80) return false;
+    var d = document.createElement("div");
+    var s = d.style;
+    s.position = "fixed";
+    s.left = rect.left + "px";
+    s.top = rect.top + "px";
+    s.height = rect.height + "px";
+    s.width = "46px";
+    s.zIndex = 9998;
+    s.pointerEvents = "none";
+    s.background = "linear-gradient(90deg, transparent, rgba(240,168,150,0.18), transparent)";
+    s.mixBlendMode = "screen";
+    document.body.appendChild(d);
+    var anim = d.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(" + (rect.width - 46) + "px)" }],
+      { duration: 520 + Math.random() * 220, easing: "cubic-bezier(.2,.6,.3,1)" }
+    );
+    trackOverlay(d, anim, el);
+    return true;
+  }
+
+  /* three words across the page stutter in quick succession */
+  function vibrateCascade() {
+    var ok = wordVibrate();
+    setTimeout(wordVibrate, 110);
+    setTimeout(wordVibrate, 230);
+    return ok;
+  }
+
   /* ── weighted burst — sphere glitch dominates while the ball is on screen ── */
   var lastVariant = -1;
   function burst() {
@@ -562,7 +683,13 @@
       function () { if (!corruptStatus()) { var t = scrambleTargets(); if (t.length) scramble(pick(t)); } },
       function () { noiseFlash(); if (Math.random() < 0.4) wordVibrate(); },
       function () { chromaPulse(); if (Math.random() < 0.5) tearBand(); },
-      function () { if (!cursorBlink()) { noiseFlash(); } }
+      function () { if (!cursorBlink()) { noiseFlash(); } },
+      function () { if (!blockJitter()) sliceGlitch(pick(targets()), false); },
+      function () { if (!ghostEcho()) tearBand(); },
+      function () { if (!blockFlicker()) noiseFlash(); if (Math.random() < 0.3) blockJitter(); },
+      function () { if (!highlightSweep()) scanline(); },
+      function () { vibrateCascade(); },
+      function () { if (!ghostEcho()) blockJitter(); if (Math.random() < 0.35) blockFlicker(); }
     ];
     var i;
     do { i = Math.floor(Math.random() * VARIANTS.length); } while (i === lastVariant);
@@ -590,6 +717,8 @@
     corruptStatus();
     noiseFlash();
     setTimeout(chromaPulse, 200);
+    setTimeout(ghostEcho, 260);
+    setTimeout(blockJitter, 420);
   }
 
   /* trigger 0: signature on first scroll past the hero */
