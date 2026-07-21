@@ -48,6 +48,10 @@ requestAnimationFrame(fpsTick);
 /* ── 3D Sierpinski tetrahedron ───────────────────────────── */
 const canvas = document.getElementById("cubes");
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// render gating — skip WebGL frames while the sphere is scrolled out of view
+// (heroGone: desktop scroll-collapse past 100%; canvasSeen: viewport presence)
+let heroGone = false;
+let canvasSeen = true;
 if (!reduced) initScene();
 
 function initScene() {
@@ -202,9 +206,18 @@ function initScene() {
     ptr.ty = (e.clientY / window.innerHeight) * 2 - 1;
   });
 
+  /* pause rendering while the sphere is out of the viewport — an invisible
+     sphere at 60fps starves the compositor and makes archive scrolling lag */
+  const visIO = new IntersectionObserver((es) => { canvasSeen = es[0].isIntersecting; });
+  visIO.observe(canvas);
+
   /* animation loop · multi-axis tumble + breathing + per-leaf shimmer */
   let t0 = performance.now();
   function loop(now) {
+    if (heroGone || !canvasSeen || document.hidden) {
+      requestAnimationFrame(loop);
+      return;
+    }
     const t = (now - t0) / 1000;
     ptr.x += (ptr.tx - ptr.x) * 0.05;
     ptr.y += (ptr.ty - ptr.y) * 0.05;
@@ -232,6 +245,8 @@ const sceneWrap = document.querySelector(".scene-wrap");
 const metaStack = document.querySelector(".meta-stack");
 const pillNav   = document.querySelector(".pill-nav");
 const markEl    = document.querySelector(".mark");
+// compositor hint — the collapse animates these on every scroll frame
+[sceneWrap, metaStack, pillNav, markEl].forEach(el => { if (el) el.style.willChange = "transform, opacity"; });
 let scrolled = false;
 function onScroll() {
   const vh = window.innerHeight, y = window.scrollY;
@@ -244,6 +259,7 @@ function onScroll() {
   // out before the archive reaches it (no overlap).
   if (window.innerWidth > 980) {
     const p = Math.min(1, y / (vh * 0.92));            // 0 at top → 1 after ~one screen
+    heroGone = p >= 1;                                 // fully collapsed → stop rendering
     if (sceneWrap) {
       sceneWrap.style.transition = "none";
       sceneWrap.style.opacity = String(1 - p);
@@ -256,6 +272,7 @@ function onScroll() {
     if (markEl)    { markEl.style.transition = "none";    markEl.style.opacity = String(tf);    markEl.style.transform = `translateY(${-p * 22}px)`; markEl.style.pointerEvents = tf < 0.05 ? "none" : "auto"; }
   } else {
     // mobile: clear any desktop inline styles so the CSS-driven band behaviour wins
+    heroGone = false;                                  // mobile gating is IO-only
     [sceneWrap, metaStack, pillNav, markEl].forEach(el => { if (el) { el.style.transition = ""; el.style.opacity = ""; el.style.transform = ""; el.style.pointerEvents = ""; } });
   }
 }

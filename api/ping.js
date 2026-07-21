@@ -78,6 +78,10 @@ module.exports = async (req, res) => {
     screen: String(body.screen || "").slice(0, 20),
     tz: String(body.tz || "").slice(0, 60),
     ua: ua.slice(0, 300),
+    event: String(body.event || "view").slice(0, 40),
+    scroll: body.scroll === undefined ? "" : String(body.scroll).slice(0, 4),
+    seconds: body.seconds === undefined ? "" : String(body.seconds).slice(0, 7),
+    utm: String(body.utm || "").slice(0, 80),
   };
 
   try {

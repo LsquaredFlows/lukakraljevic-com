@@ -284,24 +284,67 @@
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
 </script>
-<script type="module" src="./main.js?v=21"></script>
+<script type="module" src="./main.js?v=22"></script>
 <script>
-  // Lightweight visit ping → same-origin /api/ping (CSP-safe; "track" in the
-  // path gets eaten by ad-blocker filter lists). Fire-and-forget.
-  try {
-    fetch("/api/ping", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      keepalive: true,
-      body: JSON.stringify({
-        path: location.pathname,
-        referrer: document.referrer,
-        lang: navigator.language,
-        screen: screen.width + "x" + screen.height,
-        tz: Intl.DateTimeFormat().resolvedOptions().timeZone
-      })
-    }).catch(function () {});
-  } catch (e) {}
+  // Visit analytics → same-origin /api/ping (CSP-safe; "track" in the path
+  // gets eaten by ad-blocker filter lists). Fire-and-forget, cookie-free.
+  // Rows: one "view" on load, one "exit" with scroll depth + seconds on
+  // leave, one "click:<label>" per contact/outbound click.
+  (function () {
+    var qs = new URLSearchParams(location.search);
+    var base = {
+      path: location.pathname,
+      referrer: document.referrer,
+      lang: navigator.language,
+      screen: screen.width + "x" + screen.height,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      utm: qs.get("src") || qs.get("utm_source") || ""
+    };
+    function send(extra) {
+      try {
+        var data = JSON.stringify(Object.assign({}, base, extra));
+        var blob = new Blob([data], { type: "application/json" });
+        if (!(navigator.sendBeacon && navigator.sendBeacon("/api/ping", blob))) {
+          fetch("/api/ping", { method: "POST", headers: { "content-type": "application/json" }, keepalive: true, body: data }).catch(function () {});
+        }
+      } catch (e) {}
+    }
+    send({ event: "view" });
+
+    // max scroll depth + dwell time, reported once when the tab hides/closes
+    var t0 = Date.now(), maxPct = 0, exited = false;
+    function depth() {
+      var d = document.documentElement;
+      var total = d.scrollHeight - window.innerHeight;
+      var pct = total > 0 ? Math.round((window.scrollY / total) * 100) : 100;
+      if (pct > maxPct) maxPct = Math.min(100, pct);
+    }
+    window.addEventListener("scroll", depth, { passive: true });
+    depth();
+    function exit() {
+      if (exited) return;
+      exited = true;
+      send({ event: "exit", scroll: maxPct, seconds: Math.round((Date.now() - t0) / 1000) });
+    }
+    window.addEventListener("pagehide", exit);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") exit();
+    });
+
+    // contact + outbound clicks
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (!a) return;
+      var h = a.getAttribute("href") || "";
+      var label = "";
+      if (h.indexOf("mailto:") === 0) label = "email";
+      else if (h.indexOf("linkedin.com") !== -1) label = "linkedin";
+      else if (h.indexOf("instagram.com") !== -1) label = "instagram";
+      else if (h.indexOf("github.com") !== -1) label = "github";
+      else if (h.indexOf("http") === 0 && h.indexOf("lukakraljevic.com") === -1) label = "out";
+      if (label) send({ event: "click:" + label });
+    });
+  })();
 </script>
 </body>
 </html>
