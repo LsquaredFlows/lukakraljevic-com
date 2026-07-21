@@ -117,7 +117,10 @@ a { color: inherit; text-decoration: none; }
 }
 
 .clock-row {
-  display: block;   /* time on top, am/pm under it, sentence below */
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .big-clock {
@@ -130,8 +133,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .ampm-radio {
-  display: flex; flex-direction: row; gap: 16px;
-  margin-top: 10px;
+  display: inline-flex; flex-direction: column; gap: 4px;
+  margin-top: 8px;
   font-family: var(--body);
   font-size: 12px;
   color: var(--cream-2);
@@ -156,8 +159,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.015em;
   color: var(--cream);
   max-width: 28ch;
-  display: block;
-  margin-top: 30px;
+  margin-top: 6px;
   flex: 1;
   min-width: 280px;
 }
@@ -252,9 +254,9 @@ body.scrolled .scene-wrap {
 .archive {
   position: relative; z-index: 6;   /* above fixed hero (z5) so it cleanly covers it on scroll */
   background: var(--bg);
-  padding: 48px var(--pad) 48px;
+  padding: 80px var(--pad) 200px;
   max-width: 1180px;
-  margin: 94vh auto 0;       /* push below the hero viewport — slight overlap with the hero fade so there is never a fully black screen between them */
+  margin: 100vh auto 0;       /* push below the hero viewport */
 }
 .ar-eyebrow {
   font-family: var(--mono);
@@ -273,7 +275,7 @@ body.scrolled .scene-wrap {
   display: grid;
   grid-template-columns: 160px 1fr;
   gap: 56px;
-  padding: 28px 0;
+  padding: 100px 0;
   border-top: 1px solid var(--rule);
   align-items: start;
   opacity: 0;
@@ -409,7 +411,7 @@ body.scrolled .scene-wrap {
 
 /* archive footer */
 .ar-foot {
-  margin-top: 24px;
+  margin-top: 80px;
   padding-top: 32px;
   border-top: 1px solid var(--rule);
   font-family: var(--mono);
@@ -452,7 +454,7 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
 
 @media (max-width: 980px) {
   .progress { display: none; }
-  .ar-sect { grid-template-columns: 1fr; gap: 16px; padding: 60px 0; }
+  .ar-sect { grid-template-columns: 1fr; gap: 16px; padding: 36px 0; }
   .ar-num { position: relative; top: auto; }
   .ar-list li { grid-template-columns: 40px 1fr; }
   .ar-li-d { grid-column: 2; text-align: left; padding-top: 4px; }
@@ -468,7 +470,7 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
 
 /* ── responsive · single-column phone layout ─────────────── */
 @media (max-width: 980px) {
-  body { overflow-y: auto; height: auto; min-height: 100vh; padding-bottom: 120px; }
+  body { overflow-y: auto; height: auto; min-height: 100vh; padding-bottom: 40px; }
 
   /* name sits at the very top, in flow */
   .mark { position: static; padding: 76px var(--pad) 0; }
@@ -497,10 +499,12 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   .meta-stack { position: static; padding: 14px var(--pad) 44px; max-width: none; gap: 22px; }
   .pill-nav { position: static; flex-direction: row; flex-wrap: wrap; padding: 0 var(--pad) 8px; align-items: flex-start; }
   .clock-row { display: block; }
+  .ampm-radio { display: flex; flex-direction: row; gap: 16px; margin-top: 10px; }
   .hero-sentence { min-width: 0; margin-top: 22px; }
   .dim-stats { margin-left: 0; display: block; margin-top: 14px; }
 
-  .archive { margin-top: 0; }
+  .archive { margin-top: 0; padding: 36px var(--pad) 40px; }
+  .ar-foot { margin-top: 28px; }
 
   /* hero text is real content — never fade it on scroll */
   body.scrolled .meta-stack,
