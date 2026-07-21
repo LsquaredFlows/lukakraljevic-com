@@ -607,8 +607,8 @@
   addEventListener("scroll", function () {
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function () {
-      if (!signatureDone || Date.now() - lastFire < 5000) return;
-      if (Math.random() < 0.45) { lastFire = Date.now(); burst(); }
+      if (!signatureDone || Date.now() - lastFire < 3000) return;
+      if (Math.random() < 0.6) { lastFire = Date.now(); burst(); }
     }, 150);
   }, { passive: true });
 
@@ -617,6 +617,6 @@
     setTimeout(function () {
       if (signatureDone && Date.now() - lastFire > 3000) { lastFire = Date.now(); burst(); }
       idle();
-    }, 14000 + Math.random() * 11000);
+    }, 8000 + Math.random() * 7000);
   })();
 })();
