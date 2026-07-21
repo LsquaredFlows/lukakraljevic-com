@@ -254,9 +254,9 @@ body.scrolled .scene-wrap {
 .archive {
   position: relative; z-index: 6;   /* above fixed hero (z5) so it cleanly covers it on scroll */
   background: var(--bg);
-  padding: 80px var(--pad) 200px;
+  padding: 48px var(--pad) 140px;
   max-width: 1180px;
-  margin: 100vh auto 0;       /* push below the hero viewport */
+  margin: 94vh auto 0;       /* push below the hero viewport — slight overlap with the hero fade so there is never a fully black screen between them */
 }
 .ar-eyebrow {
   font-family: var(--mono);
@@ -275,7 +275,7 @@ body.scrolled .scene-wrap {
   display: grid;
   grid-template-columns: 160px 1fr;
   gap: 56px;
-  padding: 100px 0;
+  padding: 72px 0;
   border-top: 1px solid var(--rule);
   align-items: start;
   opacity: 0;
@@ -411,7 +411,7 @@ body.scrolled .scene-wrap {
 
 /* archive footer */
 .ar-foot {
-  margin-top: 80px;
+  margin-top: 48px;
   padding-top: 32px;
   border-top: 1px solid var(--rule);
   font-family: var(--mono);
