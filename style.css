@@ -275,7 +275,7 @@ body.scrolled .scene-wrap {
   display: grid;
   grid-template-columns: 160px 1fr;
   gap: 56px;
-  padding: 72px 0;
+  padding: 56px 0;
   border-top: 1px solid var(--rule);
   align-items: start;
   opacity: 0;
@@ -286,7 +286,7 @@ body.scrolled .scene-wrap {
   opacity: 1;
   transform: translateY(0);
 }
-.ar-sect:last-child { border-bottom: 1px solid var(--rule); }
+.ar-sect:last-child { border-bottom: 0; }   /* footer rule follows — one line, not two */
 
 .ar-num {
   font-family: var(--display);
@@ -411,7 +411,7 @@ body.scrolled .scene-wrap {
 
 /* archive footer */
 .ar-foot {
-  margin-top: 48px;
+  margin-top: 32px;
   padding-top: 32px;
   border-top: 1px solid var(--rule);
   font-family: var(--mono);
@@ -531,4 +531,34 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
   .meta-stack { gap: 10px; }
   .big-clock { font-size: clamp(40px, 8.5vh, 64px); }
   .hero-sentence { font-size: clamp(18px, 4vh, 30px); max-width: 30ch; }
+}
+
+/* ── single divider between sections ──
+   content that ends in its own rule (list rows, the spec grid, contact rows)
+   was doubling up with the next section's border-top — kill the trailing rule */
+.ar-list li:last-child { border-bottom: 0; }
+.ar-grid { border-bottom: 0; }
+.ar-contact li:last-child { border-bottom: 0; }
+
+/* ── back-to-top (phones only) ── */
+html { scroll-behavior: smooth; }
+.to-top { display: none; }
+@media (max-width: 980px) {
+  .to-top {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    gap: 8px;
+    margin: 44px auto 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream);
+    text-decoration: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 12px 22px;
+  }
+  .to-top .tt-arrow { color: var(--coral); }
 }
