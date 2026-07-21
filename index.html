@@ -295,7 +295,12 @@
   // leave, one "click:<label>" per contact/outbound click.
   (function () {
     var qs = new URLSearchParams(location.search);
+    // vid: random per page load, memory only (no cookie/storage) — lets the
+    // sheet group this visit's view/exit/click rows into one story
+    var vid = Math.random().toString(36).slice(2, 8);
     var base = {
+      vid: vid,
+      viewport: window.innerWidth + "x" + window.innerHeight,
       path: location.pathname,
       referrer: document.referrer,
       lang: navigator.language,
@@ -333,6 +338,19 @@
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "hidden") exit();
     });
+
+    // which sections they actually reach (once each per visit)
+    try {
+      var sectIO = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (e.isIntersecting) {
+            sectIO.unobserve(e.target);
+            send({ event: "sect:" + (e.target.id || "").replace("ar-", "") });
+          }
+        });
+      }, { threshold: 0.4 });
+      document.querySelectorAll(".ar-sect").forEach(function (el) { sectIO.observe(el); });
+    } catch (e) {}
 
     // contact + outbound clicks
     document.addEventListener("click", function (e) {

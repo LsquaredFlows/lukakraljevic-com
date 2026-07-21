@@ -8,6 +8,24 @@
 
 const BOT = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview|embedly|quora link preview|whatsapp|telegrambot|discordbot|linkedinbot|twitterbot|pinterest|headless|phantom|puppeteer|playwright|lighthouse|gtmetrix|pingdom|uptime|monitor|python-requests|axios|node-fetch|okhttp|curl|wget|go-http|java\//i;
 
+function browserOf(ua) {
+  if (/edg\//i.test(ua)) return "edge";
+  if (/samsungbrowser/i.test(ua)) return "samsung";
+  if (/opr\//i.test(ua)) return "opera";
+  if (/firefox\//i.test(ua)) return "firefox";
+  if (/chrome\//i.test(ua)) return "chrome";
+  if (/safari\//i.test(ua)) return "safari";
+  return "other";
+}
+function osOf(ua) {
+  if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+  if (/android/i.test(ua)) return "android";
+  if (/mac os x/i.test(ua)) return "macos";
+  if (/windows/i.test(ua)) return "windows";
+  if (/linux/i.test(ua)) return "linux";
+  return "other";
+}
+
 function classify(ref) {
   if (!ref) return "direct";
   try {
@@ -91,6 +109,10 @@ module.exports = async (req, res) => {
     scroll: body.scroll === undefined ? "" : String(body.scroll).slice(0, 4),
     seconds: body.seconds === undefined ? "" : String(body.seconds).slice(0, 7),
     utm: String(body.utm || "").slice(0, 80),
+    vid: String(body.vid || "").slice(0, 12),
+    viewport: String(body.viewport || "").slice(0, 20),
+    browser: browserOf(ua),
+    os: osOf(ua),
   };
 
   try {
