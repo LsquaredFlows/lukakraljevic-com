@@ -517,3 +517,18 @@ body.scrolled .progress { opacity: 1; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ── short desktop windows (bookmarks bar, small laptops) ──
+   the hero stack is bottom-anchored and its type scales with vw, so a
+   wide-but-short viewport lets it climb up into the mark/contact pill.
+   Below 860px height, scale the stack with vh instead. */
+@media (min-width: 981px) and (max-height: 860px) {
+  .meta-stack { gap: 12px; }
+  .big-clock { font-size: clamp(48px, 9.5vh, 88px); }
+  .hero-sentence { font-size: clamp(21px, 4.4vh, 40px); }
+}
+@media (min-width: 981px) and (max-height: 740px) {
+  .meta-stack { gap: 10px; }
+  .big-clock { font-size: clamp(40px, 8.5vh, 64px); }
+  .hero-sentence { font-size: clamp(18px, 4vh, 30px); max-width: 30ch; }
+}
