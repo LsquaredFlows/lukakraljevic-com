@@ -3,10 +3,25 @@
 // We enrich with Vercel's server-side geo headers, drop bots, and forward a
 // clean row to the private n8n webhook (which appends it to a Google Sheet).
 //
-// Privacy: we never store or forward the raw IP — only the country/region/city
-// that Vercel derives at the edge. Set TRACK_WEBHOOK_URL in Vercel env vars.
+// Privacy: we never store or forward the raw IP. We derive country/region/city
+// from Vercel's edge headers, plus a salted one-way hash of the IP (iphash, 12
+// hex chars) so repeat visitors can be de-duplicated without holding personal
+// data. The raw IP is used only in-memory to compute the hash, then discarded.
+// Set TRACK_WEBHOOK_URL in Vercel env vars.
 
-const BOT = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview|embedly|quora link preview|whatsapp|telegrambot|discordbot|linkedinbot|twitterbot|pinterest|headless|phantom|puppeteer|playwright|lighthouse|gtmetrix|pingdom|uptime|monitor|python-requests|axios|node-fetch|okhttp|curl|wget|go-http|java\//i;
+const crypto = require("crypto");
+
+// GDPR-friendlier visitor key: sha256(salt | ip) truncated. Salt comes from a
+// secret env var (never in the repo) so the hash can't be rainbow-tabled.
+function ipHash(req) {
+  var xff = req.headers["x-vercel-forwarded-for"] || req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || "";
+  var ip = String(xff).split(",")[0].trim();
+  if (!ip) return "";
+  var salt = process.env.TRACK_SALT || process.env.TRACK_WEBHOOK_URL || "lk-fallback-salt";
+  return crypto.createHash("sha256").update(salt + "|" + ip).digest("hex").slice(0, 12);
+}
+
+const BOT =/bot|crawl|spider|slurp|facebookexternalhit|bingpreview|embedly|quora link preview|whatsapp|telegrambot|discordbot|linkedinbot|twitterbot|pinterest|headless|phantom|puppeteer|playwright|lighthouse|gtmetrix|pingdom|uptime|monitor|python-requests|axios|node-fetch|okhttp|curl|wget|go-http|java\//i;
 
 function browserOf(ua) {
   if (/edg\//i.test(ua)) return "edge";
@@ -117,6 +132,7 @@ module.exports = async (req, res) => {
     intent: String(body.intent || "").slice(0, 20),
     temp: String(body.temp || "").slice(0, 20),
     email: String(body.email || "").slice(0, 120),
+    iphash: ipHash(req),
   };
 
   try {
