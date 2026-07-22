@@ -102,11 +102,27 @@
     }, reduce ? 0 : 420);
   }
 
+  // once the read-out (with its email form) is on screen, stop dismissing on
+  // stray backdrop taps / key shortcuts — the user is trying to type, not skip.
+  var onReadout = false;
+  function typingInField(e) {
+    var el = e.target;
+    return el && /^(input|textarea|select)$/i.test(el.tagName || "");
+  }
+
   root.querySelector(".lk-intro-skip").addEventListener("click", function () { dismiss("skip"); });
-  root.addEventListener("click", function (e) { if (e.target === root) dismiss("skip"); });
+  root.addEventListener("click", function (e) {
+    if (onReadout) return;                 // never nuke the form with a stray tap
+    if (e.target === root) dismiss("skip");
+  });
   document.addEventListener("keydown", function onKey(e) {
     if (!document.body.contains(root)) { document.removeEventListener("keydown", onKey); return; }
+    if (typingInField(e)) {                // typing an email — leave keys alone
+      if (e.key === "Escape") e.target.blur();
+      return;
+    }
     if (e.key === "Escape") { dismiss("skip"); return; }
+    if (onReadout) return;
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= 9) {
       var btns = stage.querySelectorAll(".lk-choice");
@@ -116,13 +132,13 @@
 
   function setProg(step) { prog.textContent = step ? "0" + step + " / 03" : ""; }
 
-  // typewriter (skipped under reduced-motion)
+  // typewriter (skipped under reduced-motion) — snappy: a few chars per tick
   function type(el, text, done) {
     if (reduce) { el.textContent = text; done && done(); return; }
-    var i = 0;
+    var i = 0, step = text.length > 40 ? 3 : 2;   // longer lines reveal faster
     (function tick() {
       el.textContent = text.slice(0, i);
-      if (i++ <= text.length) setTimeout(tick, 18 + Math.random() * 26);
+      if (i <= text.length) { i += step; setTimeout(tick, 12); }
       else done && done();
     })();
   }
@@ -141,7 +157,7 @@
     stage.appendChild(pre);
     var lines = COPY.boot.slice();
     (function next() {
-      if (!lines.length) { setTimeout(function () { clearStage(q1); }, reduce ? 0 : 380); return; }
+      if (!lines.length) { setTimeout(function () { clearStage(q1); }, reduce ? 0 : 240); return; }
       var row = document.createElement("div");
       row.className = "lk-boot-line";
       pre.appendChild(row);
@@ -156,7 +172,7 @@
         ok.className = "lk-boot-ok";
         ok.textContent = " ok";
         row.appendChild(ok);
-        setTimeout(next, reduce ? 0 : 160);
+        setTimeout(next, reduce ? 0 : 90);
       });
     })();
   }
@@ -186,7 +202,7 @@
           clearStage(function () { onPick(o.key); });
         });
         list.appendChild(b);
-        if (!reduce) { b.style.animationDelay = (i * 60) + "ms"; b.classList.add("lk-choice-in"); }
+        if (!reduce) { b.style.animationDelay = (i * 40) + "ms"; b.classList.add("lk-choice-in"); }
       });
     });
   }
@@ -198,6 +214,7 @@
   function readout() {
     setProg(0);
     prog.textContent = "";
+    onReadout = true;   // stop backdrop/shortcut dismiss — form is coming
     // final segment row carries role/intent/temp so the sheet has clean columns
     post({ event: "intro:done", role: answers.q1 || "", intent: answers.q2 || "", temp: answers.q3 || "" });
     var role = answers.q1 || "observer";
@@ -210,8 +227,12 @@
     var l2 = document.createElement("div");
     l2.className = "lk-readout-2";
     wrap.appendChild(l1); wrap.appendChild(l2);
+    // type the headline, drop the second line in fast, then reveal the form
+    // right away — no more 4-second wait that reads as "it skipped".
     type(l1, lines[0], function () {
-      type(l2, lines[1] || "", function () { buildInquiry(wrap, role); });
+      if (reduce) { l2.textContent = lines[1] || ""; buildInquiry(wrap, role); return; }
+      l2.textContent = lines[1] || "";
+      setTimeout(function () { buildInquiry(wrap, role); }, 120);
     });
   }
 
@@ -234,10 +255,12 @@
     }
     wrap.appendChild(box);
 
+    // the ONLY filled/coral action is "send". Entering the site is a quiet
+    // ghost link so nobody mistakes it for the submit and skips by accident.
     var enter = document.createElement("button");
     enter.type = "button";
-    enter.className = "lk-enter";
-    enter.textContent = "enter site";
+    enter.className = "lk-enter lk-enter-ghost";
+    enter.textContent = (role === "observer") ? "enter site →" : "skip and enter →";
     enter.addEventListener("click", function () { dismiss("complete"); });
     wrap.appendChild(enter);
 
@@ -248,6 +271,8 @@
     if (form) {
       var input = form.querySelector(".lk-inq-input");
       var msg = box.querySelector(".lk-inq-msg");
+      // autofocus on desktop only (avoid a surprise keyboard pop on phones)
+      if (!matchMedia("(pointer: coarse)").matches) { try { input.focus(); } catch (e) {} }
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var email = (input.value || "").trim();
@@ -259,11 +284,18 @@
         }
         post({ event: "inquiry", email: email, role: answers.q1 || "", intent: answers.q2 || "", temp: answers.q3 || "" });
         box.innerHTML = '<div class="lk-inq-done">' + COPY.inq_done + '</div>';
-        enter.textContent = "enter site";
+        enter.textContent = "enter site →";
       });
     }
   }
 
+  // dev-jump (localhost only): ?jump=readout renders the read-out form directly
+  if (DEMO && /jump=readout/.test(location.search)) {
+    answers.q1 = "founder"; answers.q2 = "software"; answers.q3 = "active";
+    readout();
+    return;
+  }
+
   // honest preloader: let the sphere/fonts settle a beat, then boot
-  setTimeout(boot, reduce ? 0 : 260);
+  setTimeout(boot, reduce ? 0 : 160);
 })();

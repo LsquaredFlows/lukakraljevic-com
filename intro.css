@@ -2,7 +2,7 @@
 .lk-intro {
   position: fixed; inset: 0; z-index: 100;
   display: flex; flex-direction: column;
-  align-items: flex-start; justify-content: center;
+  align-items: stretch; justify-content: center;
   padding: clamp(28px, 7vw, 96px);
   font-family: var(--mono);
   color: var(--cream);
@@ -81,7 +81,7 @@
 .lk-inq-form { display: flex; align-items: center; gap: 10px; max-width: 440px; border: 1px solid var(--rule); border-radius: 10px; padding: 4px 4px 4px 14px; transition: border-color .25s var(--ease); }
 .lk-inq-form:focus-within { border-color: var(--coral); }
 .lk-inq-mk { color: var(--coral); font-family: var(--mono); }
-.lk-inq-input { flex: 1; background: transparent; border: 0; outline: none; color: var(--cream); font-family: var(--mono); font-size: 14px; letter-spacing: 0.02em; padding: 10px 0; }
+.lk-inq-input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: var(--cream); font-family: var(--mono); font-size: 14px; letter-spacing: 0.02em; padding: 10px 0; }
 .lk-inq-input::placeholder { color: var(--dim); opacity: 0.6; }
 .lk-inq-send { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a; font-weight: 600; background: var(--coral); border: 0; border-radius: 8px; padding: 11px 20px; cursor: pointer; transition: transform .2s var(--ease); }
 .lk-inq-send:hover { transform: translateY(-1px); }
@@ -89,12 +89,15 @@
 .lk-inq-err { color: var(--coral); }
 .lk-inq-done { font-family: var(--mono); font-size: clamp(14px, 1.8vw, 17px); color: var(--coral); letter-spacing: 0.04em; }
 .lk-readout .lk-enter { margin-top: clamp(20px, 3vw, 30px); }
+/* ghost "enter site" — a quiet link, never mistaken for the coral send button */
+.lk-enter-ghost { background: transparent; color: var(--dim); font-weight: 500; padding: 8px 0; }
+.lk-enter-ghost:hover { background: transparent; color: var(--coral); transform: none; box-shadow: none; }
 
 /* scanline layer (skins opt in) */
 .lk-intro-scan { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 
 /* ════════ SKIN A — terminal boot / clearance ════════ */
-.lk-intro-A { background: #060606; align-items: flex-start; }
+.lk-intro-A { background: #060606; align-items: stretch; }
 .lk-intro-A .lk-intro-scan {
   opacity: 1;
   background: repeating-linear-gradient(0deg, rgba(240,168,150,0.035) 0, rgba(240,168,150,0.035) 1px, transparent 1px, transparent 3px);
@@ -111,13 +114,13 @@
 .lk-intro-A .lk-enter { border-radius: 2px; }
 
 /* ════════ SKIN B — signal handshake (minimal premium) ════════ */
-.lk-intro-B { background: rgba(10,10,10,0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: flex-start; }
+.lk-intro-B { background: rgba(10,10,10,0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: stretch; }
 .lk-intro-B .lk-choice { border-radius: 999px; }
 .lk-intro-B .lk-boot-line { color: var(--dim); }
 /* the real sphere shows faintly through the blur — nothing else needed */
 
 /* ════════ SKIN C — HUD overlay (diegetic) ════════ */
-.lk-intro-C { background: linear-gradient(120deg, rgba(10,10,10,0.55), rgba(10,10,10,0.9)); align-items: flex-start; justify-content: flex-end; }
+.lk-intro-C { background: linear-gradient(120deg, rgba(10,10,10,0.55), rgba(10,10,10,0.9)); align-items: stretch; justify-content: flex-end; }
 .lk-intro-C .lk-intro-scan {
   opacity: 1;
   background: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 4px);
@@ -139,9 +142,12 @@
 
 /* mobile — compact + centered so the prompt + all 4 options fit above the fold */
 @media (max-width: 640px) {
+  /* stretch (not flex-start) so the stage is bounded to the viewport width —
+     otherwise the skin's align-items:flex-start lets long lines overflow right */
+  .lk-intro, .lk-intro-A, .lk-intro-B, .lk-intro-C { align-items: stretch; }
   .lk-intro { padding: 64px 18px 28px; justify-content: center; }
   .lk-intro-C { justify-content: center; }
-  .lk-intro-stage { max-width: none; }
+  .lk-intro-stage { max-width: none; width: 100%; min-width: 0; }
 
   .lk-intro-skip { top: 14px; right: 14px; padding: 7px 12px; font-size: 10px; }
   .lk-intro-skip span { display: none; }              /* drop [esc] hint on touch */
@@ -155,8 +161,13 @@
   .lk-choice-l { grid-column: 2; grid-row: 1; font-size: 16px; }
   .lk-choice-s { grid-column: 2; grid-row: 2; font-size: 12px; }
 
-  .lk-readout-1 { font-size: clamp(22px, 6.6vw, 30px); }
-  .lk-readout-2 { font-size: clamp(15px, 4.4vw, 19px); }
-  .lk-inq-form { max-width: none; }
-  .lk-inq-send { padding: 11px 16px; }
+  .lk-readout-1 { font-size: clamp(22px, 6.6vw, 30px); overflow-wrap: anywhere; }
+  .lk-readout-2 { font-size: clamp(15px, 4.4vw, 19px); max-width: 100% !important; }
+  /* hard-bound every readout child to the viewport so nothing pushes off-right */
+  .lk-readout, .lk-inq, .lk-inq-form, .lk-inq-label, .lk-readout-2, .lk-readout-1 {
+    max-width: 100% !important; box-sizing: border-box;
+  }
+  .lk-inq-form { flex-wrap: wrap; }               /* send drops below input if tight */
+  .lk-inq-input { flex: 1 1 60%; }
+  .lk-inq-send { padding: 11px 16px; flex: 0 0 auto; }
 }
