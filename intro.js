@@ -135,10 +135,10 @@
   // typewriter (skipped under reduced-motion) — snappy: a few chars per tick
   function type(el, text, done) {
     if (reduce) { el.textContent = text; done && done(); return; }
-    var i = 0, step = text.length > 40 ? 3 : 2;   // longer lines reveal faster
+    var i = 0, step = text.length > 40 ? 2 : 1;   // longer lines reveal faster
     (function tick() {
       el.textContent = text.slice(0, i);
-      if (i <= text.length) { i += step; setTimeout(tick, 12); }
+      if (i <= text.length) { i += step; setTimeout(tick, 16); }
       else done && done();
     })();
   }
