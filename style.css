@@ -254,7 +254,7 @@ body.scrolled .scene-wrap {
 .archive {
   position: relative; z-index: 6;   /* above fixed hero (z5) so it cleanly covers it on scroll */
   background: var(--bg);
-  padding: 80px var(--pad) 200px;
+  padding: 80px var(--pad) 56px;
   max-width: 1180px;
   margin: 100vh auto 0;       /* push below the hero viewport */
 }
