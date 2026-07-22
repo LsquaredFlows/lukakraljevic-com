@@ -126,7 +126,7 @@
     var n = parseInt(e.key, 10);
     if (n >= 1 && n <= 9) {
       var btns = stage.querySelectorAll(".lk-choice");
-      if (btns[n - 1]) btns[n - 1].click();
+      if (btns[n - 1] && !btns[n - 1].classList.contains("lk-choice-hold")) btns[n - 1].click();
     }
   });
 
@@ -141,6 +141,22 @@
       if (i <= text.length) { i += step; setTimeout(tick, 12); }
       else done && done();
     })();
+  }
+
+  // typed lines that never reflow: a hidden full-text sizer reserves the
+  // final space (incl. line wraps) and the live typed text paints on top —
+  // so options/forms below sit in their final spot from frame one.
+  function typeLine(el, text, done) {
+    el.classList.add("lk-typewrap");
+    var size = document.createElement("span");
+    size.className = "lk-t-size";
+    size.setAttribute("aria-hidden", "true");
+    size.textContent = text;
+    var live = document.createElement("span");
+    live.className = "lk-t-live";
+    el.appendChild(size);
+    el.appendChild(live);
+    type(live, text, done);
   }
 
   function clearStage(cb) {
@@ -188,20 +204,26 @@
     list.className = "lk-choices";
     wrap.appendChild(list);
     stage.appendChild(wrap);
-    type(p, promptText, function () {
-      opts.forEach(function (o, i) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.className = "lk-choice";
-        b.innerHTML =
-          '<span class="lk-choice-n">' + (i + 1) + '</span>' +
-          '<span class="lk-choice-l">' + o.label + '</span>' +
-          '<span class="lk-choice-s">' + o.sub + '</span>';
-        b.addEventListener("click", function () {
-          logChoice("q" + step, o.key);
-          clearStage(function () { onPick(o.key); });
-        });
-        list.appendChild(b);
+    // build every option up front, invisible but occupying its final space —
+    // the typed prompt can wrap on phones without shoving them around.
+    var btns = opts.map(function (o, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "lk-choice lk-choice-hold";
+      b.innerHTML =
+        '<span class="lk-choice-n">' + (i + 1) + '</span>' +
+        '<span class="lk-choice-l">' + o.label + '</span>' +
+        '<span class="lk-choice-s">' + o.sub + '</span>';
+      b.addEventListener("click", function () {
+        logChoice("q" + step, o.key);
+        clearStage(function () { onPick(o.key); });
+      });
+      list.appendChild(b);
+      return b;
+    });
+    typeLine(p, promptText, function () {
+      btns.forEach(function (b, i) {
+        b.classList.remove("lk-choice-hold");
         if (!reduce) { b.style.animationDelay = (i * 40) + "ms"; b.classList.add("lk-choice-in"); }
       });
     });
@@ -227,13 +249,25 @@
     var l2 = document.createElement("div");
     l2.className = "lk-readout-2";
     wrap.appendChild(l1); wrap.appendChild(l2);
-    // type the headline, drop the second line in fast, then reveal the form
-    // right away — no more 4-second wait that reads as "it skipped".
-    type(l1, lines[0], function () {
-      if (reduce) { l2.textContent = lines[1] || ""; buildInquiry(wrap, role); return; }
-      l2.textContent = lines[1] || "";
-      setTimeout(function () { buildInquiry(wrap, role); }, 120);
-    });
+    // everything below the headline is built now, invisible, in its final
+    // spot — the typed headline can never push into or overlap it. Then the
+    // sub-line and form fade in, in order.
+    l2.textContent = lines[1] || "";
+    l2.classList.add("lk-hold");
+    buildInquiry(wrap, role);
+    var below = wrap.querySelectorAll(".lk-inq, .lk-enter");
+    below.forEach(function (el) { el.classList.add("lk-hold"); });
+    function reveal() {
+      l2.classList.add("lk-reveal");
+      setTimeout(function () {
+        below.forEach(function (el) { el.classList.add("lk-reveal"); });
+        // autofocus on desktop only (avoid a surprise keyboard pop on phones)
+        var input = wrap.querySelector(".lk-inq-input");
+        if (input && !matchMedia("(pointer: coarse)").matches) { try { input.focus(); } catch (e) {} }
+      }, reduce ? 0 : 140);
+    }
+    if (reduce) { l1.textContent = lines[0]; reveal(); }
+    else typeLine(l1, lines[0], reveal);
   }
 
   function buildInquiry(wrap, role) {
@@ -271,8 +305,6 @@
     if (form) {
       var input = form.querySelector(".lk-inq-input");
       var msg = box.querySelector(".lk-inq-msg");
-      // autofocus on desktop only (avoid a surprise keyboard pop on phones)
-      if (!matchMedia("(pointer: coarse)").matches) { try { input.focus(); } catch (e) {} }
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var email = (input.value || "").trim();
