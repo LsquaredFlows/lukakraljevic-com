@@ -29,7 +29,8 @@
       { key: "software",   label: "software",   sub: "that doesn't exist yet" },
       { key: "ai",         label: "private ai",  sub: "i can trust with my data" },
       { key: "automation", label: "automation", sub: "things that run without me" },
-      { key: "security",   label: "security",   sub: "who's already inside" }
+      { key: "security",   label: "security",   sub: "who's already inside" },
+      { key: "curious",    label: "curiosity",  sub: "no problem to solve yet" }
     ],
     q3_prompt: "where is it?",
     q3: [
@@ -242,7 +243,8 @@
   }
 
   function q1() { question(1, COPY.q1_prompt, COPY.q1, function () { q2(); }); }
-  function q2() { question(2, COPY.q2_prompt, COPY.q2, function () { q3(); }); }
+  // "curiosity" has no problem to place on a timeline — skip q3, go to read-out
+  function q2() { question(2, COPY.q2_prompt, COPY.q2, function (k) { if (k === "curious") readout(); else q3(); }); }
   function q3() { question(3, COPY.q3_prompt, COPY.q3, function () { readout(); }); }
 
   function readout() {
