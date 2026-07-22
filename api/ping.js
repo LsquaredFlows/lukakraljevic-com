@@ -113,6 +113,10 @@ module.exports = async (req, res) => {
     viewport: String(body.viewport || "").slice(0, 20),
     browser: browserOf(ua),
     os: osOf(ua),
+    role: String(body.role || "").slice(0, 20),
+    intent: String(body.intent || "").slice(0, 20),
+    temp: String(body.temp || "").slice(0, 20),
+    email: String(body.email || "").slice(0, 120),
   };
 
   try {

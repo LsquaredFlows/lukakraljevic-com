@@ -32,6 +32,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css?v=32" />
+<link rel="stylesheet" href="./intro.css?v=1" />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -53,7 +54,7 @@
 </script>
 </head>
 
-<body>
+<body data-intro-mode="A">
 
 <h1 class="sr-only">Luka Kraljević — independent operator and builder of private software and AI infrastructure for founders, operators and investors. Split, Croatia.</h1>
 
@@ -296,8 +297,10 @@
   (function () {
     var qs = new URLSearchParams(location.search);
     // vid: random per page load, memory only (no cookie/storage) — lets the
-    // sheet group this visit's view/exit/click rows into one story
-    var vid = Math.random().toString(36).slice(2, 8);
+    // sheet group this visit's view/exit/click rows into one story.
+    // shared on window so the intro overlay logs under the same visit.
+    window.__lkvid = window.__lkvid || Math.random().toString(36).slice(2, 8);
+    var vid = window.__lkvid;
     var base = {
       vid: vid,
       viewport: window.innerWidth + "x" + window.innerHeight,
@@ -367,5 +370,6 @@
     });
   })();
 </script>
+<script src="./intro.js?v=1"></script>
 </body>
 </html>
