@@ -779,9 +779,14 @@
     setTimeout(blockJitter, 420);
   }
 
+  /* glitch overlays are z-9997+ — they'd paint OVER the intro overlay
+     (z-100), so every trigger holds its fire while the intro is up */
+  function introOpen() { return !!document.querySelector(".lk-intro"); }
+
   /* trigger 0: signature on first scroll past the hero */
   addEventListener("scroll", function onFirst() {
     if (signatureDone) { removeEventListener("scroll", onFirst); return; }
+    if (introOpen()) return;   // don't consume — fire after the intro closes
     if (scrollY > innerHeight * 0.35) {
       removeEventListener("scroll", onFirst);
       signature();
@@ -794,6 +799,7 @@
   addEventListener("scroll", function () {
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function () {
+      if (introOpen()) return;
       if (!signatureDone || Date.now() - lastFire < 2200) return;
       if (Math.random() < 0.75) { lastFire = Date.now(); burst(); }
     }, 150);
@@ -802,7 +808,7 @@
   /* trigger 2: idle heartbeat */
   (function idle() {
     setTimeout(function () {
-      if (signatureDone && Date.now() - lastFire > 3000) { lastFire = Date.now(); burst(); }
+      if (!introOpen() && signatureDone && Date.now() - lastFire > 3000) { lastFire = Date.now(); burst(); }
       idle();
     }, 6000 + Math.random() * 5000);
   })();

@@ -143,20 +143,28 @@
     })();
   }
 
-  // typed lines that never reflow: a hidden full-text sizer reserves the
-  // final space (incl. line wraps) and the live typed text paints on top —
-  // so options/forms below sit in their final spot from frame one.
+  // typed lines that never reflow: the FULL text is always in flow — the
+  // typed head is visible, the untyped tail sits in an invisible span — so
+  // height/wrapping are final from frame one and nothing is absolutely
+  // positioned (an absolute overlay can wrap differently on some phones
+  // and spill over the options below).
   function typeLine(el, text, done) {
     el.classList.add("lk-typewrap");
-    var size = document.createElement("span");
-    size.className = "lk-t-size";
-    size.setAttribute("aria-hidden", "true");
-    size.textContent = text;
-    var live = document.createElement("span");
-    live.className = "lk-t-live";
-    el.appendChild(size);
-    el.appendChild(live);
-    type(live, text, done);
+    var head = document.createElement("span");
+    var rest = document.createElement("span");
+    rest.className = "lk-t-rest";
+    rest.setAttribute("aria-hidden", "true");
+    el.appendChild(head);
+    el.appendChild(rest);
+    if (reduce) { head.textContent = text; done && done(); return; }
+    var i = 0, step = text.length > 40 ? 2 : 1;
+    (function tick() {
+      if (i > text.length) i = text.length;
+      head.textContent = text.slice(0, i);
+      rest.textContent = text.slice(i);
+      if (i < text.length) { i += step; setTimeout(tick, 16); }
+      else done && done();
+    })();
   }
 
   function clearStage(cb) {
@@ -206,6 +214,7 @@
     stage.appendChild(wrap);
     // build every option up front, invisible but occupying its final space —
     // the typed prompt can wrap on phones without shoving them around.
+    var picked = false;   // one answer per question — ignore double-taps
     var btns = opts.map(function (o, i) {
       var b = document.createElement("button");
       b.type = "button";
@@ -215,6 +224,9 @@
         '<span class="lk-choice-l">' + o.label + '</span>' +
         '<span class="lk-choice-s">' + o.sub + '</span>';
       b.addEventListener("click", function () {
+        if (picked) return;
+        picked = true;
+        b.blur();   // don't leave a sticky focus/hover state behind on touch
         logChoice("q" + step, o.key);
         clearStage(function () { onPick(o.key); });
       });
