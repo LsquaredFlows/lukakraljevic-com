@@ -342,6 +342,15 @@
     return;
   }
 
-  // honest preloader: let the sphere/fonts settle a beat, then boot
-  setTimeout(boot, reduce ? 0 : 160);
+  // honest preloader: wait for the mono font before typing (a mid-type font
+  // swap re-shapes every typed line on phones) — capped so it can't stall.
+  function start() { setTimeout(boot, reduce ? 0 : 160); }
+  if (!reduce && document.fonts && document.fonts.ready) {
+    var started = false;
+    var go = function () { if (!started) { started = true; start(); } };
+    document.fonts.ready.then(go, go);
+    setTimeout(go, 900);
+  } else {
+    start();
+  }
 })();

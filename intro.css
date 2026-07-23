@@ -161,8 +161,11 @@
   /* stretch (not flex-start) so the stage is bounded to the viewport width —
      otherwise the skin's align-items:flex-start lets long lines overflow right */
   .lk-intro, .lk-intro-A, .lk-intro-B, .lk-intro-C { align-items: stretch; }
-  .lk-intro { padding: 64px 18px 28px; justify-content: center; }
-  .lk-intro-C { justify-content: center; }
+  /* top-anchored on phones: screens have different heights (boot lines,
+     4/5/3 options, readout) — centering re-seats the block every screen and
+     the text visibly jumps. Anchored, every prompt types at the same spot. */
+  .lk-intro { padding: 14vh 18px 28px; justify-content: flex-start; }
+  .lk-intro-C { justify-content: flex-start; }
   .lk-intro-stage { max-width: none; width: 100%; min-width: 0; }
 
   .lk-intro-skip { top: 14px; right: 14px; padding: 7px 12px; font-size: 10px; }
