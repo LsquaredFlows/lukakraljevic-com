@@ -204,6 +204,7 @@
 
   function question(step, promptText, opts, onPick) {
     setProg(step);
+    stage.innerHTML = "";   // a screen never mounts on top of a previous one
     var wrap = document.createElement("div");
     wrap.className = "lk-q";
     var p = document.createElement("div");
@@ -250,6 +251,7 @@
   function readout() {
     setProg(0);
     prog.textContent = "";
+    stage.innerHTML = "";   // same guard — the read-out owns the stage alone
     onReadout = true;   // stop backdrop/shortcut dismiss — form is coming
     // final segment row carries role/intent/temp so the sheet has clean columns
     post({ event: "intro:done", role: answers.q1 || "", intent: answers.q2 || "", temp: answers.q3 || "" });

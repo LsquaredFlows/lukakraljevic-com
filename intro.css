@@ -187,6 +187,9 @@
     max-width: 100% !important; box-sizing: border-box;
   }
   .lk-inq-form { flex-wrap: wrap; }               /* send drops below input if tight */
-  .lk-inq-input { flex: 1 1 60%; }
+  /* 16px minimum — anything smaller makes iOS Safari auto-zoom the page on
+     focus, which magnifies the fixed overlay past the viewport and smears the
+     screens over each other */
+  .lk-inq-input { flex: 1 1 60%; font-size: 16px; }
   .lk-inq-send { padding: 11px 16px; flex: 0 0 auto; }
 }
