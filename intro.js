@@ -93,7 +93,10 @@
   var stage = root.querySelector(".lk-intro-stage");
   var prog = root.querySelector(".lk-intro-prog");
 
+  var dismissed = false;
   function dismiss(reason) {
+    if (dismissed) return;   // double-tap on enter/skip fires once
+    dismissed = true;
     if (!DEMO) sessionStorage.setItem(SEEN_KEY, "1");
     if (reason) logChoice("exit", reason);
     root.classList.add("lk-intro-out");

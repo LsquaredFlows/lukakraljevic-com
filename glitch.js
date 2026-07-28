@@ -23,6 +23,9 @@
 
   var COLORS = ["#f0a896", "rgba(150,220,255,0.85)"];
   var GLYPHS = "!<>-_\\/[]{}—=+*^?#________";
+  // phones: mix-blend-mode on fixed clones renders as OPAQUE blocks on iOS
+  // Safari — the "corrupted copy over the text" effects read as bugs there.
+  var COARSE = matchMedia("(pointer: coarse)").matches;
 
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -51,6 +54,16 @@
       var i = liveOverlays.indexOf(entry);
       if (i > -1) liveOverlays.splice(i, 1);
     };
+    // hard TTL — if onfinish never fires (iOS throttling, tab switch), the
+    // overlay must still die instead of covering the text forever
+    setTimeout(function () {
+      if (document.body.contains(el)) {
+        try { anim.cancel(); } catch (e) {}
+        el.remove();
+        var i = liveOverlays.indexOf(entry);
+        if (i > -1) liveOverlays.splice(i, 1);
+      }
+    }, 3500);
   }
   function killOverlay(i) {
     var o = liveOverlays[i];
@@ -103,7 +116,7 @@
     var rect = el.getBoundingClientRect();
     if (rect.width === 0) return;
 
-    COLORS.forEach(function (color, i) {
+    if (!COARSE) COLORS.forEach(function (color, i) {
       var c = el.cloneNode(true);
       var s = c.style;
       s.position = "fixed";
@@ -584,6 +597,7 @@
   /* ghost echo — a corrupted coral copy of the whole block detaches,
      slices apart and dissolves while the real text stays clean */
   function ghostEcho() {
+    if (COARSE) return false;   // opaque-blend clone — desktop only
     var t = blockTargets();
     if (!t.length) return false;
     var el = pick(t);
@@ -656,6 +670,7 @@
      characters re-corrupting every 90ms before it dissolves. The longest,
      loudest text effect — prose only, never titles. */
   function corruptionWave() {
+    if (COARSE) return false;   // opaque-blend clone — desktop only
     var t = blockTargets();
     if (!t.length) return false;
     var el = pick(t);
@@ -761,6 +776,15 @@
   function signature() {
     signatureDone = true;
     sphereGlitch(true);
+    if (COARSE) {
+      // phone: one clean hit — sphere jolt, sweep, flash. No clone storm
+      // stacked over the text (it reads as a rendering bug on iOS).
+      setTimeout(scanline, 80);
+      noiseFlash();
+      corruptStatus();
+      setTimeout(chromaPulse, 200);
+      return;
+    }
     targets().forEach(function (el, i) {
       setTimeout(function () { sliceGlitch(el, true); }, i * 60);
     });
@@ -783,15 +807,19 @@
      (z-100), so every trigger holds its fire while the intro is up */
   function introOpen() { return !!document.querySelector(".lk-intro"); }
 
-  /* trigger 0: signature on first scroll past the hero */
+  /* trigger 0: signature on first scroll past the hero. Must be a real
+     crossing — seen near the top first, THEN scrolled past the fold. A page
+     that opens (or leaves the intro) already scrolled deep gets no ambush:
+     the signature is silently skipped and the ambient bursts take over. */
+  var seenTop = !introOpen() && scrollY <= innerHeight * 0.35;
   addEventListener("scroll", function onFirst() {
     if (signatureDone) { removeEventListener("scroll", onFirst); return; }
     if (introOpen()) return;   // don't consume — fire after the intro closes
-    if (scrollY > innerHeight * 0.35) {
-      removeEventListener("scroll", onFirst);
-      signature();
-      lastFire = Date.now();
-    }
+    if (scrollY <= innerHeight * 0.35) { seenTop = true; return; }
+    removeEventListener("scroll", onFirst);
+    lastFire = Date.now();
+    if (seenTop) signature();
+    else signatureDone = true;   // no crossing witnessed — skip the showpiece
   }, { passive: true });
 
   /* trigger 1: weighted variant just after a scroll burst ends */
