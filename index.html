@@ -33,6 +33,10 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css?v=34" />
 <link rel="stylesheet" href="./intro.css?v=6" />
+<!-- painted on the very first frame so the page never flashes before the intro
+     overlay mounts; removed instantly for returning visitors, and by intro.js
+     once its own black overlay is up -->
+<style>#lk-preboot{position:fixed;inset:0;background:#0a0a0a;z-index:2147483646}</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -55,6 +59,21 @@
 </head>
 
 <body data-intro-mode="A">
+<div id="lk-preboot"></div>
+<script>
+(function () {
+  var p = document.getElementById("lk-preboot");
+  if (!p) return;
+  try {
+    // returning visitor this session, or not a fresh prod load → no intro, no
+    // cover. (localhost always replays the intro, so keep the cover there.)
+    var demo = /^(localhost|127\.)/.test(location.hostname);
+    if (!demo && sessionStorage.getItem("lk_intro_seen")) { p.remove(); return; }
+  } catch (e) {}
+  // failsafe: if intro.js never runs (blocked/slow), never trap the page black
+  setTimeout(function () { if (p && p.parentNode) p.parentNode.removeChild(p); }, 4000);
+})();
+</script>
 
 <h1 class="sr-only">Luka Kraljević — independent operator and builder of private software and AI infrastructure for founders, operators and investors. Split, Croatia.</h1>
 
@@ -370,6 +389,6 @@
     });
   })();
 </script>
-<script src="./intro.js?v=9"></script>
+<script src="./intro.js?v=10"></script>
 </body>
 </html>

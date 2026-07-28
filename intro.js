@@ -90,6 +90,10 @@
     '<div class="lk-intro-prog" aria-hidden="true"></div>';
   document.body.appendChild(root);
   document.body.classList.add("lk-intro-open");
+  // our black overlay is up — drop the static preboot cover that was hiding the
+  // page flash until now (see the inline preboot script in index.html)
+  var preboot = document.getElementById("lk-preboot");
+  if (preboot) preboot.parentNode.removeChild(preboot);
   var stage = root.querySelector(".lk-intro-stage");
   var prog = root.querySelector(".lk-intro-prog");
 
@@ -171,10 +175,21 @@
     })();
   }
 
+  function wipe() {
+    stage.innerHTML = "";
+    // iOS WebKit (and in-app browsers like Instagram's) can leave GHOST PAINT
+    // of removed nodes beneath a position:fixed overlay — the old options stay
+    // painted on screen even though they're gone from the DOM. Toggling display
+    // forces a relayout so the compositor actually drops the stale layer.
+    stage.style.display = "none";
+    void stage.offsetHeight;
+    stage.style.display = "";
+  }
+
   function clearStage(cb) {
-    if (reduce) { stage.innerHTML = ""; cb(); return; }
+    if (reduce) { wipe(); cb(); return; }
     stage.classList.add("lk-fade-out");
-    setTimeout(function () { stage.innerHTML = ""; stage.classList.remove("lk-fade-out"); cb(); }, 180);
+    setTimeout(function () { wipe(); stage.classList.remove("lk-fade-out"); cb(); }, 180);
   }
 
   // ── screens ──
@@ -207,7 +222,7 @@
 
   function question(step, promptText, opts, onPick) {
     setProg(step);
-    stage.innerHTML = "";   // a screen never mounts on top of a previous one
+    wipe();   // a screen never mounts on top of a previous one (+ iOS ghost flush)
     var wrap = document.createElement("div");
     wrap.className = "lk-q";
     var p = document.createElement("div");
@@ -254,7 +269,7 @@
   function readout() {
     setProg(0);
     prog.textContent = "";
-    stage.innerHTML = "";   // same guard — the read-out owns the stage alone
+    wipe();   // same guard — the read-out owns the stage alone (+ iOS ghost flush)
     onReadout = true;   // stop backdrop/shortcut dismiss — form is coming
     // final segment row carries role/intent/temp so the sheet has clean columns
     post({ event: "intro:done", role: answers.q1 || "", intent: answers.q2 || "", temp: answers.q3 || "" });
