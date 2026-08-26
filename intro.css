@@ -9,7 +9,11 @@
   opacity: 1;
   transition: opacity .42s var(--ease);
 }
-.lk-intro-open { overflow: hidden; }
+/* hard scroll lock — plain overflow:hidden is ignored by iOS/in-app WebKit
+   when the keyboard opens (Instagram browser scrolls the document under the
+   fixed overlay while typing the email). position:fixed is the lock that
+   actually holds; intro.js compensates the scroll offset. */
+.lk-intro-open { overflow: hidden; position: fixed; inset-inline: 0; width: 100%; }
 .lk-intro.lk-intro-out { opacity: 0; pointer-events: none; }
 
 .lk-intro-skip {

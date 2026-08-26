@@ -89,7 +89,11 @@
     '<div class="lk-intro-stage"></div>' +
     '<div class="lk-intro-prog" aria-hidden="true"></div>';
   document.body.appendChild(root);
+  // body gets position:fixed while the intro is up (real iOS scroll lock) —
+  // preserve and restore the scroll position around it
+  var lockY = window.scrollY || 0;
   document.body.classList.add("lk-intro-open");
+  document.body.style.top = -lockY + "px";
   // our black overlay is up — drop the static preboot cover that was hiding the
   // page flash until now (see the inline preboot script in index.html)
   var preboot = document.getElementById("lk-preboot");
@@ -107,6 +111,8 @@
     setTimeout(function () {
       root.remove();
       document.body.classList.remove("lk-intro-open");
+      document.body.style.top = "";
+      window.scrollTo(0, lockY);
     }, reduce ? 0 : 420);
   }
 
@@ -339,6 +345,11 @@
     if (form) {
       var input = form.querySelector(".lk-inq-input");
       var msg = box.querySelector(".lk-inq-msg");
+      // in-app browsers (Instagram) pan the visual viewport for the keyboard
+      // and can leave it stranded — snap back when typing ends
+      input.addEventListener("blur", function () {
+        setTimeout(function () { window.scrollTo(0, 0); }, 60);
+      });
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var email = (input.value || "").trim();
