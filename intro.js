@@ -105,6 +105,11 @@
   function dismiss(reason) {
     if (dismissed) return;   // double-tap on enter/skip fires once
     dismissed = true;
+    // if the email keyboard is still up, close it first — removing a focused
+    // input skips blur on iOS and can strand the viewport mid-pan
+    try {
+      if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
+    } catch (err) {}
     if (!DEMO) sessionStorage.setItem(SEEN_KEY, "1");
     if (reason) logChoice("exit", reason);
     root.classList.add("lk-intro-out");
@@ -360,6 +365,9 @@
           return;
         }
         post({ event: "inquiry", email: email, role: answers.q1 || "", intent: answers.q2 || "", temp: answers.q3 || "" });
+        // close the keyboard BEFORE destroying the focused input — iOS won't
+        // fire blur on a removed element and leaves the viewport panned
+        try { input.blur(); } catch (err) {}
         box.innerHTML = '<div class="lk-inq-done">' + COPY.inq_done + '</div>';
         enter.textContent = "enter site →";
       });
