@@ -379,6 +379,29 @@ body.scrolled .scene-wrap {
 .ar-cell li::before { content: "→"; position: absolute; left: 0; color: var(--coral); }
 .ar-cell li em { color: var(--cream); font-style: normal; }
 
+.ar-lines-form { margin-top: 20px; }
+.ar-lf-row { margin-bottom: 12px; }
+.ar-lf-input {
+  width: 100%; box-sizing: border-box;
+  background: transparent; border: 1px solid var(--rule); border-radius: 6px;
+  color: var(--cream); font-family: var(--mono); font-size: 16px; letter-spacing: 0.01em;
+  padding: 12px 14px; transition: border-color .25s var(--ease);
+}
+.ar-lf-input::placeholder { color: var(--dim); opacity: 0.7; }
+.ar-lf-input:focus { outline: none; border-color: var(--coral); }
+.ar-lf-msg { resize: vertical; font-family: var(--body); line-height: 1.5; }
+.ar-lf-actions { display: flex; align-items: center; gap: 16px; margin-bottom: 0; }
+.ar-lf-send {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #0a0a0a; font-weight: 600; background: var(--coral); border: 0; border-radius: 8px;
+  padding: 11px 22px; cursor: pointer; transition: transform .2s var(--ease), opacity .2s;
+}
+.ar-lf-send:hover { transform: translateY(-1px); }
+.ar-lf-send:disabled { opacity: 0.6; cursor: default; transform: none; }
+.ar-lf-msg-status { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.ar-lf-msg-status.ar-lf-err { color: var(--coral); }
+.ar-lf-done { font-family: var(--mono); font-size: 14px; color: var(--coral); letter-spacing: 0.02em; padding: 4px 0; }
+
 .ar-contact {
   list-style: none;
   border-top: 1px solid var(--cream);

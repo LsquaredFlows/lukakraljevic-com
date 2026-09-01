@@ -31,7 +31,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css?v=34" />
+<link rel="stylesheet" href="./style.css?v=35" />
 <link rel="stylesheet" href="./intro.css?v=7" />
 <!-- painted on the very first frame so the page never flashes before the intro
      overlay mounts; removed instantly for returning visitors, and by intro.js
@@ -271,9 +271,21 @@
     <div>
       <h2 class="ar-h">Open a <em>line</em>.</h2>
       <p class="ar-prose">
-        Lines below. Replies are quick and written. For NDA work, email
-        is the right door.
+        Write below — it lands with me directly. Replies are quick and
+        written. For NDA work, email is the right door.
       </p>
+      <form class="ar-lines-form" novalidate>
+        <div class="ar-lf-row">
+          <input class="ar-lf-input" type="email" inputmode="email" autocomplete="email" name="email" placeholder="you@company.com" aria-label="your email" required />
+        </div>
+        <div class="ar-lf-row">
+          <textarea class="ar-lf-input ar-lf-msg" name="message" rows="3" placeholder="what you're building, or what's broken" aria-label="your message" required></textarea>
+        </div>
+        <div class="ar-lf-row ar-lf-actions">
+          <button class="ar-lf-send" type="submit">send</button>
+          <span class="ar-lf-msg-status" role="status"></span>
+        </div>
+      </form>
       <ul class="ar-contact">
         <li><a href="mailto:lukakraljevic@noddra.com">
           <span class="ar-c-k">Email</span>
@@ -386,6 +398,40 @@
       else if (h.indexOf("http") === 0 && h.indexOf("lukakraljevic.com") === -1) label = "out";
       if (label) send({ event: "click:" + label });
     });
+
+    // §04 contact form — a real send, not a mailto handoff. In-app browsers
+    // (Instagram, etc.) often can't open a mail app at all, so this is the
+    // path that actually reaches me: it posts straight to the tracking sheet.
+    var lf = document.querySelector(".ar-lines-form");
+    if (lf) {
+      var lfEmail = lf.querySelector('input[name="email"]');
+      var lfMsg = lf.querySelector('textarea[name="message"]');
+      var lfStatus = lf.querySelector(".ar-lf-msg-status");
+      var lfSend = lf.querySelector(".ar-lf-send");
+      lf.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var email = (lfEmail.value || "").trim();
+        var message = (lfMsg.value || "").trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          lfStatus.textContent = "that address doesn't parse.";
+          lfStatus.className = "ar-lf-msg-status ar-lf-err";
+          lfEmail.focus();
+          return;
+        }
+        if (!message) {
+          lfStatus.textContent = "say a line about what you need.";
+          lfStatus.className = "ar-lf-msg-status ar-lf-err";
+          lfMsg.focus();
+          return;
+        }
+        lfSend.disabled = true;
+        lfSend.textContent = "sending…";
+        send({ event: "contact", email: email, message: message });
+        setTimeout(function () {
+          lf.innerHTML = '<div class="ar-lf-done">received. i\'ll reply by email.</div>';
+        }, 260);
+      });
+    }
   })();
 </script>
 <script src="./intro.js?v=12"></script>

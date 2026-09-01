@@ -132,6 +132,7 @@ module.exports = async (req, res) => {
     intent: String(body.intent || "").slice(0, 20),
     temp: String(body.temp || "").slice(0, 20),
     email: String(body.email || "").slice(0, 120),
+    message: String(body.message || "").slice(0, 2000),
     iphash: ipHash(req),
   };
 
