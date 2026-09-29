@@ -1,5 +1,5 @@
-/* ── experimental: occasional premium micro-glitch ─────────────
-   Variants:
+/* ── experimental: premium glitch layer ─────────────────────────
+   Variants (block-scale, one paragraph/cell):
      sliceGlitch   — coral+ice RGB-split clones with random clip bands
      tearBand      — CRT tear: full-width band, backdrop hue-shift + x-jitter
      scramble      — plain-text el cycles random glyphs before settling
@@ -9,13 +9,21 @@
      sphereGlitch  — the ball takes a visual hit AND spin-jolts (weighted:
                      dominates bursts while the sphere is on screen)
      corruptStatus — the FPS/dims HUD readout corrupts a couple chars
+     blockJitter/blockFlicker/ghostEcho/highlightSweep/corruptionWave —
+                     whole-paragraph effects (mobile-safe except ghost/corruption)
+   Variants (BIG — whole section body: heading + prose + list/grid together):
+     bigBlockJitter/bigSweep/bigGhostEcho/bigCorruptionWave — same engines as
+     above, re-targeted to the full content block of §01–§04 via sectionTargets()
    Ambient:
-     decrypt-on-reveal — §headers scramble-resolve when first scrolled into view
-     cursor trace      — phosphor-decay dots behind fast pointer moves (desktop)
+     decrypt-on-reveal   — §headers scramble-resolve when first scrolled into view
+     section-entrance    — GUARANTEED one big hit per content block (§01–§04)
+                            the first time it scrolls into view
+     cursor trace        — phosphor-decay dots behind fast pointer moves (desktop)
    Triggers:
      - SIGNATURE burst, once, the first time you scroll off the hero
+     - section-entrance, once per block, first time each is in view
      - weighted rotating variants after each scroll burst ends
-     - idle heartbeat (demo cadence)
+     - idle heartbeat
    Respects prefers-reduced-motion. */
 
 (function () {
@@ -95,6 +103,17 @@
     });
     document.querySelectorAll(".ar-h, .ar-num").forEach(function (h) {
       if (visible(h)) els.push(h);
+    });
+    return els;
+  }
+
+  /* whole content-block bodies for §01–04 — heading + prose + list/grid
+     together, one target per section. "Big" effects operate here instead of
+     on a single paragraph. */
+  function sectionTargets() {
+    var els = [];
+    document.querySelectorAll(".ar-sect > div").forEach(function (el) {
+      if (visible(el)) els.push(el);
     });
     return els;
   }
@@ -563,16 +582,18 @@
     return els;
   }
 
-  /* whole block jitters with RGB shadow — like the paragraph lost tracking */
-  function blockJitter() {
-    var t = blockTargets();
+  /* whole block jitters with RGB shadow — like the paragraph lost tracking.
+     pool/amp let the BIG variant reuse this at section scale. */
+  function blockJitter(pool, amp) {
+    var t = pool || blockTargets();
     if (!t.length) return false;
     var el = pick(t);
+    amp = amp || 3;
     var frames = [], steps = 7;
     for (var f = 0; f <= steps; f++) {
       var last = f === steps;
       frames.push({
-        transform: last ? "none" : "translate(" + (Math.random() * 6 - 3) + "px," + (Math.random() * 2 - 1) + "px) skewX(" + (Math.random() * 2 - 1) + "deg)",
+        transform: last ? "none" : "translate(" + (Math.random() * amp * 2 - amp) + "px," + (Math.random() * amp * 0.7 - amp * 0.35) + "px) skewX(" + (Math.random() * 2 - 1) + "deg)",
         textShadow: last ? "none" : (Math.random() < 0.5
           ? "-3px 0 " + COLORS[0] + ", 3px 0 " + COLORS[1]
           : "3px 0 " + COLORS[0] + ", -3px 0 " + COLORS[1]),
@@ -581,6 +602,10 @@
     }
     el.animate(frames, { duration: 750 + Math.random() * 450, easing: "steps(" + steps + ", jump-none)" });
     return true;
+  }
+  /* section-scale jitter — the whole block (heading + prose + list/grid) */
+  function bigBlockJitter() {
+    return blockJitter(sectionTargets(), 7);
   }
 
   /* block flickers like a failing backlight */
@@ -596,9 +621,9 @@
 
   /* ghost echo — a corrupted coral copy of the whole block detaches,
      slices apart and dissolves while the real text stays clean */
-  function ghostEcho() {
+  function ghostEcho(pool) {
     if (COARSE) return false;   // opaque-blend clone — desktop only
-    var t = blockTargets();
+    var t = pool || blockTargets();
     if (!t.length) return false;
     var el = pick(t);
     var rect = el.getBoundingClientRect();
@@ -638,40 +663,53 @@
     trackOverlay(c, anim, el);
     return true;
   }
+  /* section-scale echo — the WHOLE block (heading + prose + list/grid)
+     detaches as one corrupted coral copy. Desktop only, same as ghostEcho. */
+  function bigGhostEcho() {
+    return ghostEcho(sectionTargets());
+  }
 
-  /* scanner sweep — a soft coral read-head passes across the block */
-  function highlightSweep() {
-    var t = blockTargets();
+  /* scanner sweep — a soft coral read-head passes across the block.
+     pool/beamWidth/opacity let the BIG variant widen + brighten this at
+     section scale. Plain gradient div + screen blend — no text clone, so
+     this stays mobile-safe at any size. */
+  function highlightSweep(pool, beamWidth, opacity) {
+    var t = pool || blockTargets();
     if (!t.length) return false;
     var el = pick(t);
     var rect = el.getBoundingClientRect();
-    if (rect.width < 80) return false;
+    beamWidth = beamWidth || 72;
+    if (rect.width < beamWidth + 8) return false;
     var d = document.createElement("div");
     var s = d.style;
     s.position = "fixed";
     s.left = rect.left + "px";
     s.top = rect.top + "px";
     s.height = rect.height + "px";
-    s.width = "72px";
+    s.width = beamWidth + "px";
     s.zIndex = 9998;
     s.pointerEvents = "none";
-    s.background = "linear-gradient(90deg, transparent, rgba(240,168,150,0.30), transparent)";
+    s.background = "linear-gradient(90deg, transparent, rgba(240,168,150," + (opacity || 0.30) + "), transparent)";
     s.mixBlendMode = "screen";
     document.body.appendChild(d);
     var anim = d.animate(
-      [{ transform: "translateX(0)" }, { transform: "translateX(" + (rect.width - 72) + "px)" }],
+      [{ transform: "translateX(0)" }, { transform: "translateX(" + (rect.width - beamWidth) + "px)" }],
       { duration: 950 + Math.random() * 450, easing: "cubic-bezier(.2,.6,.3,1)" }
     );
     trackOverlay(d, anim, el);
     return true;
   }
+  /* section-scale sweep — wide, bright beam across the whole block */
+  function bigSweep() {
+    return highlightSweep(sectionTargets(), 160, 0.42);
+  }
 
   /* corruption wave — a ghost copy sits ON the paragraph for ~2s, its
      characters re-corrupting every 90ms before it dissolves. The longest,
      loudest text effect — prose only, never titles. */
-  function corruptionWave() {
+  function corruptionWave(pool) {
     if (COARSE) return false;   // opaque-blend clone — desktop only
-    var t = blockTargets();
+    var t = pool || blockTargets();
     if (!t.length) return false;
     var el = pick(t);
     var rect = el.getBoundingClientRect();
@@ -722,6 +760,12 @@
     trackOverlay(c, anim, el);
     return true;
   }
+  /* section-scale corruption wave — the whole block re-corrupts in place
+     for ~2s before dissolving. The single loudest effect in the set;
+     reserved for section-entrance and the rare big burst. Desktop only. */
+  function bigCorruptionWave() {
+    return corruptionWave(sectionTargets());
+  }
 
   /* three words across the page stutter in quick succession */
   function vibrateCascade() {
@@ -762,7 +806,12 @@
       function () { vibrateCascade(); },
       function () { if (!ghostEcho()) blockJitter(); if (Math.random() < 0.35) blockFlicker(); },
       function () { if (!corruptionWave()) ghostEcho(); },
-      function () { if (!corruptionWave()) blockJitter(); if (Math.random() < 0.4) highlightSweep(); }
+      function () { if (!corruptionWave()) blockJitter(); if (Math.random() < 0.4) highlightSweep(); },
+      // ── bigger, more common: whole-section hits, not just one paragraph ──
+      function () { if (!bigSweep()) highlightSweep(); },
+      function () { bigBlockJitter(); if (Math.random() < 0.4) bigSweep(); },
+      function () { if (!bigGhostEcho()) bigBlockJitter(); },
+      function () { if (!bigCorruptionWave()) bigGhostEcho(); }
     ];
     var i;
     do { i = Math.floor(Math.random() * VARIANTS.length); } while (i === lastVariant);
@@ -828,16 +877,38 @@
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function () {
       if (introOpen()) return;
-      if (!signatureDone || Date.now() - lastFire < 2200) return;
-      if (Math.random() < 0.75) { lastFire = Date.now(); burst(); }
+      if (!signatureDone || Date.now() - lastFire < 1300) return;
+      if (Math.random() < 0.9) { lastFire = Date.now(); burst(); }
     }, 150);
   }, { passive: true });
 
   /* trigger 2: idle heartbeat */
   (function idle() {
     setTimeout(function () {
-      if (!introOpen() && signatureDone && Date.now() - lastFire > 3000) { lastFire = Date.now(); burst(); }
+      if (!introOpen() && signatureDone && Date.now() - lastFire > 2000) { lastFire = Date.now(); burst(); }
       idle();
-    }, 6000 + Math.random() * 5000);
+    }, 3500 + Math.random() * 3500);
   })();
+
+  /* trigger 3: section-entrance — GUARANTEED one big hit per content block
+     (§01–04), the first time it scrolls into view. This is what makes the
+     four blocks (practice / on the desk / selected work / open a line) each
+     visibly glitch once on arrival, instead of relying on random chance. */
+  var sectionIO = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting || e.target.dataset.entranceFx) return;
+      e.target.dataset.entranceFx = "1";
+      sectionIO.unobserve(e.target);
+      if (introOpen()) return;   // header decrypt still runs; skip the glitch layer only
+      var pool = [e.target];
+      setTimeout(function () {
+        // desktop: the loudest combo. mobile: safe, still big — jitter + wide sweep.
+        if (!COARSE && Math.random() < 0.5) bigCorruptionWave();
+        else if (!COARSE) bigGhostEcho();
+        blockJitter(pool, 7);
+        setTimeout(function () { highlightSweep(pool, 160, 0.4); }, 120);
+      }, 220 + Math.random() * 200);   // let the header's own decrypt start first
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll(".ar-sect > div").forEach(function (el) { sectionIO.observe(el); });
 })();
